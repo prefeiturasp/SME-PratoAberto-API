@@ -17,6 +17,15 @@ export API_MONGO_URI=localhost:27017
 
 Lista escolas da rede publica.
 
+Argumentos de query string:
+
+```
+nome:   string - opcional
+        Permite a filtragem da lista de escolas pelo nome
+```
+
+
+
 Retorno:
 
 ```
@@ -40,7 +49,7 @@ Lista detalhes de uma determina escola pelo seu identificador (código Escola On
 Parametros:
 
 ```
-id_escola:	int
+id_escola:    int
 ```
 
 
@@ -70,19 +79,19 @@ Lista os cardapios disponíveis
 Parametros:
 
 ```
-data:	string - opcional
-		Formato: YYYYMMDD
+data:   string - opcional
+        Formato: YYYYMMDD
 ```
 
 Argumentos de query string:
 
 ```
-agrupamento:		string - opcional
-tipo_atendimento:	string - opcional
-tipo_unidade:		string - opcional
-idade:				string - opcional
-data_inicial:		string - opcional
-data_final:			string - opcional
+agrupamento:        string - opcional
+tipo_atendimento:   string - opcional
+tipo_unidade:       string - opcional
+idade:              string - opcional
+data_inicial:       string - opcional
+data_final:         string - opcional
 ```
 
 
@@ -125,13 +134,13 @@ Para acesso, é necessário enviar uma chave através do cabeçalho HTTP `key`. 
 Argumentos de query string:
 
 ```
-status:				string - opcional
-agrupamento:		string - opcional
-tipo_atendimento:	string - opcional
-tipo_unidade:		string - opcional
-idade:				string - opcional
-data_inicial:		string - opcional
-data_final:			string - opcional
+status:             string - opcional
+agrupamento:        string - opcional
+tipo_atendimento:   string - opcional
+tipo_unidade:       string - opcional
+idade:              string - opcional
+data_inicial:       string - opcional
+data_final:         string - opcional
 ```
 
 

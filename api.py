@@ -32,13 +32,16 @@ def get_lista_escolas():
             { 'nome': { '$regex': nome.replace(' ', '.*'), '$options': 'i' } },
             { '_id': True, 'nome': True }).limit(int(request.args.get('limit', 5)))
     except KeyError:
-        cursor = db.escolas.find({},
-            {
+        if 'completo' not in request.args:
+            fields =  {
                 'tipo_unidade': False,
                 'tipo_atendimento': False,
                 'agrupamento': False,
                 'telefone': False
-            })
+            }
+            cursor = db.escolas.find({}, fields)
+        else:
+            cursor = db.escolas.find({})
 
     response = app.response_class(
         response=json_util.dumps(cursor),
