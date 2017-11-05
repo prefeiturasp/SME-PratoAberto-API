@@ -1,10 +1,8 @@
 import os
 
-from flask import Flask, request, jsonify
+from flask import Flask, request
 from pymongo import MongoClient
-from pymongo.errors import ConnectionFailure
 from bson import json_util
-from bson.objectid import ObjectId
 
 
 app = Flask(__name__)
@@ -13,35 +11,25 @@ API_KEY = os.environ.get('API_KEY')
 API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
 
 client = MongoClient(API_MONGO_URI)
-try:
-    # The ismaster command is cheap and does not require auth.
-    client.admin.command('ismaster')
-    print('mongo connected')
-except ConnectionFailure:
-    print('mongo not available')
 db = client['pratoaberto']
 
 
 @app.route('/escolas')
 def get_lista_escolas():
+    query = { 'status': 'ativo' }
+    fields = { '_id': True, 'nome': True }
     try:
+        limit = int(request.args.get('limit', 5))
         # busca por nome
         nome = request.args['nome']
-        # to-do: adicionar idades da escola a resposta
-        cursor = db.escolas.find(
-            { 'nome': { '$regex': nome.replace(' ', '.*'), '$options': 'i' } },
-            { '_id': True, 'nome': True }).limit(int(request.args.get('limit', 5)))
+        query['nome'] = { '$regex': nome.replace(' ', '.*'), '$options': 'i' }
+        cursor = db.escolas.find(query, fields).limit(limit)
     except KeyError:
-        if 'completo' not in request.args:
-            fields =  {
-                'tipo_unidade': False,
-                'tipo_atendimento': False,
-                'agrupamento': False,
-                'telefone': False
-            }
-            cursor = db.escolas.find({}, fields)
+        if 'completo' in request.args:
+            cursor = db.escolas.find(query)
         else:
-            cursor = db.escolas.find({})
+            fields.update({ k: True for k in ['endereco', 'bairro', 'lat', 'lon']})
+            cursor = db.escolas.find(query, fields)
 
     response = app.response_class(
         response=json_util.dumps(cursor),
@@ -53,19 +41,10 @@ def get_lista_escolas():
 
 @app.route('/escola/<int:id_escola>')
 def get_detalhe_escola(id_escola):
-    escola = db.escolas.find_one({'_id': id_escola}, {'_id': False})
+    query = { '_id': id_escola, 'status': 'ativo' }
+    fields = { '_id': False, 'status': False }
+    escola = db.escolas.find_one(query, fields)
     if escola:
-        pipeline = [
-            { "$limit": 100 },
-            { "$match": { "tipo_unidade": escola['tipo_unidade'] } },
-            { "$group": { "_id": "$tipo_unidade", "idades": { "$addToSet": "$idade" } } },
-            { "$project": { "_id": False, "idades": True } }
-        ]
-        idades = list(db.cardapios.aggregate(pipeline))
-        try:
-            escola['idades'] = idades[0]['idades']
-        except:
-            escola['idades'] = ['UNIDADE SEM FAIXA']
         response = app.response_class(
             response=json_util.dumps(escola),
             status=200,
