@@ -1,0 +1,40 @@
+{
+	"refeicoes": {
+		"D - DESJEJUM": "Desjejum",
+		"C - COLACAO": "Colação",
+		"A - ALMOCO": "Almoço",
+		"L - LANCHE": "Lanche",
+		"J - JANTAR": "Refeição da Tarde",
+		"L4 - LANCHE 4 HORAS": "Lanche - Permanência de 4 ou 8 horas",
+		"L5 - LANCHE 5 HORAS": "Lanche - Permanência de 5 ou 6 horas",
+		"R1 - REFEICAO 1": "Refeição",
+		"MS - MERENDA SECA": "Merenda Seca",
+		"MI - MERENDA INICIAL": "Merenda Inicial",
+		"RP - REFEIÇÃO PROFESSOR": "Refeição - Professor",
+		"FPJ - FILHOS PRO JOVEM": "Pro Jovem (filhos)",
+		"AP - ALMOÇO PROFESSOR": "Almoço - Professor",
+		"JP - JANTAR PROFESSOR": "Jantar - Professor",
+		"AA - ALMOCO ADULTO": "Refeição"
+	},
+	"idades": {
+		"A - 0 A 1 MES": "0 a 1 mês",
+		"B - 1 A 3 MESES": "1 a 3 meses",
+		"C - 4 A 5 MESES": "4 a 5 meses",
+		"D - 6 A 7 MESES": "6 a 7 meses",
+		"E - 8 A 11 MESES": "8 a 11 meses",
+		"F - 2 A 3 ANOS": "2 a 3 anos",
+		"X - 1A -1A E 11MES": "1 ano",
+		"G - 4 A 6 ANOS": "4 a 6 anos",
+		"W - EMEI DA CEMEI": "EMEI da CEMEI",
+		"N - 6 A 7 MESES PARCIAL": "6 a 7 meses - parcial",
+		"O - 8 A 11 MESES PARCIAL": "8 a 11 meses  - parcial",
+		"P - 2 A 3 ANOS PARCIAL": "2 a 3 anos - parcial",
+		"Y - 1A -1A E 11MES PARCIAL": "1 ano - parcial",
+		"Q - 4 A 6 ANOS PARCIAL": "4 a 6 anos - parcial",
+		"H - ADULTO": "Todas as idades",
+		"Z - UNIDADES SEM FAIXA": "Todas as idades",
+		"S - FILHOS PRO JOVEM": "Filhos – Pro Jovem",
+		"V - PROFESSOR": "Professor ",
+		"U - PROFESSOR JANTAR CEI": "Professor (jantar)"
+	}
+}

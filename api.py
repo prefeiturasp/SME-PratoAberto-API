@@ -1,3 +1,4 @@
+import json
 import os
 
 from flask import Flask, request
@@ -14,6 +15,13 @@ client = MongoClient(API_MONGO_URI)
 db = client['pratoaberto']
 
 
+with open('de_para.json', 'r') as f:
+    conf = json.load(f)
+    refeicoes = conf['refeicoes']
+    idades = conf['idades']
+    idades_reversed = {v: k for k, v in conf['idades'].items()}
+
+
 @app.route('/escolas')
 def get_lista_escolas():
     query = { 'status': 'ativo' }
@@ -26,7 +34,16 @@ def get_lista_escolas():
         cursor = db.escolas.find(query, fields).limit(limit)
     except KeyError:
         if 'completo' in request.args:
+            escolas = []
             cursor = db.escolas.find(query)
+            for escola in cursor:
+                print(escola['_id'])
+                if 'idades' in escola:
+                    escola['idades'] = [idades[x] for x in escola['idades']]
+                if 'refeicoes' in escola:
+                    escola['refeicoes'] = [refeicoes[x] for x in escola['refeicoes']]
+                escolas.append(escola)
+            cursor = escolas
         else:
             fields.update({ k: True for k in ['endereco', 'bairro', 'lat', 'lon']})
             cursor = db.escolas.find(query, fields)
@@ -44,6 +61,10 @@ def get_detalhe_escola(id_escola):
     query = { '_id': id_escola, 'status': 'ativo' }
     fields = { '_id': False, 'status': False }
     escola = db.escolas.find_one(query, fields)
+    if 'idades' in escola:
+        escola['idades'] = [idades[x] for x in escola['idades']]
+    if 'refeicoes' in escola:
+        escola['refeicoes'] = [refeicoes[x] for x in escola['refeicoes']]
     if escola:
         response = app.response_class(
             response=json_util.dumps(escola),
@@ -72,7 +93,7 @@ def get_cardapio_escola(id_escola, data=None):
         }
 
         if request.args.get('idade'):
-            query['idade'] = request.args['idade']
+            query['idade'] = idades_reversed.get(request.args['idade'])
 
         if data:
             query['data'] = str(data)
@@ -91,7 +112,13 @@ def get_cardapio_escola(id_escola, data=None):
             'cardapio_original': False
         }
 
-        cardapios = db.cardapios.find(query, fields).sort([('data', -1)])
+        _cardapios = []
+        cardapios = db.cardapios.find(query, fields).sort([('data', -1)]).limit(15)
+        for c in cardapios:
+            c['idade'] = idades[c['idade']]
+            c['cardapio'] = {refeicoes[k]: v for k, v in c['cardapio'].items()}
+            _cardapios.append(c)
+        cardapios = _cardapios
 
         response = app.response_class(
             response=json_util.dumps(cardapios),
@@ -121,7 +148,7 @@ def get_cardapios(data=None):
     if request.args.get('tipo_unidade'):
         query['tipo_unidade'] = request.args['tipo_unidade']
     if request.args.get('idade'):
-        query['idade'] = request.args['idade']
+        query['idade'] = idades_reversed.get(request.args['idade'])
 
     if data:
         query['data'] = data
@@ -148,6 +175,13 @@ def get_cardapios(data=None):
         cardapios = cardapios.skip(limit*(page-1)).limit(limit)
     elif limit:
         cardapios = cardapios.limit(limit)
+
+    _cardapios = []
+    for c in cardapios:
+        c['idade'] = idades[c['idade']]
+        c['cardapio'] = {refeicoes[k]: v for k, v in c['cardapio'].items()}
+        _cardapios.append(c)
+    cardapios = _cardapios
 
     response = app.response_class(
         response=json_util.dumps(cardapios),
@@ -177,7 +211,7 @@ def get_cardapios_editor():
         if request.args.get('tipo_unidade'):
             query['tipo_unidade'] = request.args['tipo_unidade']
         if request.args.get('idade'):
-            query['idade'] = request.args['idade']
+            query['idade'] =  request.args['idade']
         data = {}
         if request.args.get('data_inicial'):
             data.update({'$gte': request.args['data_inicial']})
@@ -238,7 +272,7 @@ def edit_escola(id_escola):
 
 
 if __name__ == '__main__':
-    client = MongoClient('mongodb://localhost:27017')
+    client = MongoClient('mongodb://localhost:27018')
     db = client['pratoaberto']
     app.run(debug=True)
 
