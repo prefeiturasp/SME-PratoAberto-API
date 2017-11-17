@@ -33,20 +33,8 @@ def get_lista_escolas():
         query['nome'] = { '$regex': nome.replace(' ', '.*'), '$options': 'i' }
         cursor = db.escolas.find(query, fields).limit(limit)
     except KeyError:
-        if 'completo' in request.args:
-            escolas = []
-            cursor = db.escolas.find(query)
-            for escola in cursor:
-                print(escola['_id'])
-                if 'idades' in escola:
-                    escola['idades'] = [idades[x] for x in escola['idades']]
-                if 'refeicoes' in escola:
-                    escola['refeicoes'] = [refeicoes[x] for x in escola['refeicoes']]
-                escolas.append(escola)
-            cursor = escolas
-        else:
-            fields.update({ k: True for k in ['endereco', 'bairro', 'lat', 'lon']})
-            cursor = db.escolas.find(query, fields)
+        fields.update({ k: True for k in ['endereco', 'bairro', 'lat', 'lon']})
+        cursor = db.escolas.find(query, fields)
 
     response = app.response_class(
         response=json_util.dumps(cursor),
@@ -247,6 +235,23 @@ def get_cardapios_editor():
                 bulk.insert(item)
         bulk.execute()
         return ('', 200)
+
+
+@app.route('/editor/escolas')
+def get_escolas_editor():
+    key = request.headers.get('key')
+    if key != API_KEY:
+        return ('', 401)
+
+    query = { 'status': 'ativo' }
+    cursor = db.escolas.find(query)
+
+    response = app.response_class(
+        response=json_util.dumps(cursor),
+        status=200,
+        mimetype='application/json'
+    )
+    return response
 
 
 @app.route('/editor/escola/<int:id_escola>', methods=['POST'])
