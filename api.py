@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import json
 import os
 
@@ -50,9 +51,9 @@ def get_detalhe_escola(id_escola):
     fields = { '_id': False, 'status': False }
     escola = db.escolas.find_one(query, fields)
     if 'idades' in escola:
-        escola['idades'] = [idades[x] for x in escola['idades']]
+        escola['idades'] = [idades.get(x, x) for x in escola['idades']]
     if 'refeicoes' in escola:
-        escola['refeicoes'] = [refeicoes[x] for x in escola['refeicoes']]
+        escola['refeicoes'] = [refeicoes.get(x, x) for x in escola['refeicoes']]
     if escola:
         response = app.response_class(
             response=json_util.dumps(escola),
@@ -277,7 +278,7 @@ def edit_escola(id_escola):
 
 
 if __name__ == '__main__':
-    client = MongoClient('mongodb://localhost:27018')
+    client = MongoClient('mongodb://localhost:27017')
     db = client['pratoaberto']
     app.run(debug=True)
 
