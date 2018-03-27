@@ -1,3 +1,5 @@
+[![Maintainability](https://api.codeclimate.com/v1/badges/a96e3bfb2024cd6464f7/maintainability)](https://codeclimate.com/github/prefeiturasp/SME-PratoAberto-API/maintainability)
+
 # API
 
 A API serve dados sobre as escolas e as refeições das escolas da rede pública da cidade de São Paulo.
