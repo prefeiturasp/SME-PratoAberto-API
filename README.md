@@ -11,6 +11,7 @@ Instale os requisitos através do `requirements.txt` e configure uma variável d
 ```
 pip install -r requirements.txt
 export API_MONGO_URI=localhost:27017
+FLASK_APP=app.py flask run
 ```
 
 # Endpoints
