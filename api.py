@@ -228,7 +228,7 @@ def get_cardapios_editor():
 
     elif request.method == 'POST':
         bulk = db.cardapios.initialize_ordered_bulk_op()
-        for item in json_util.loads(request.data):
+        for item in json_util.loads(request.data.decode("utf-8")):
             try:
                 _id = item['_id']
                 bulk.find({'_id': _id}).update({'$set': item})
