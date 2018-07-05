@@ -165,29 +165,28 @@ def get_cardapios(data=None):
     elif limit:
         cardapios = cardapios.limit(limit)
 
+    cardapios_geral = []
     _cardapios = []
-    for c in cardapios:
-        c['idade'] = idades[c['idade']]
-        c['cardapio'] = {refeicoes[k]: v for k, v in c['cardapio'].items()}
-        _cardapios.append(c)
-    cardapios = _cardapios
+    cardapio_ordenado = []
+    definicao_ordenacao = ['A - 0 A 1 MES','B - 1 A 3 MESES','C - 4 A 5 MESES','D - 0 A 5 MESES','D - 6 A 7 MESES','D - 6 MESES','D - 7 MESES','E - 8 A 11 MESES','X - 1A -1A E 11MES','F - 2 A 3 ANOS','G - 4 A 6 ANOS','I - 2 A 6 ANOS','W - EMEI DA CEMEI','N - 6 A 7 MESES PARCIAL','O - 8 A 11 MESES PARCIAL','Y - 1A -1A E 11MES PARCIAL','P - 2 A 3 ANOS PARCIAL','Q - 4 A 6 ANOS PARCIAL','H - ADULTO','Z - UNIDADES SEM FAIXA','S - FILHOS PRO JOVEM','V - PROFESSOR','U - PROFESSOR JANTAR CEI']
 
     for c in cardapios:
+        cardapios_geral.append(c)   
+
+    for i in definicao_ordenacao:
+        for c in cardapios_geral:
+            if i == c['idade']:
+                cardapio_ordenado.append(c)
+                continue
+
+    for c in cardapio_ordenado:
+        c['idade'] = idades[c['idade']]
+        c['cardapio'] = {refeicoes[k]: v for k, v in c['cardapio'].items()}
+
+    for c in cardapio_ordenado:
         for x in refeicoes:
             if refeicoes[x] in c['cardapio']:
                 c['cardapio'][refeicoes[x]] = sorted(c['cardapio'][refeicoes[x]])
-
-
-    # Implementação de ordenação de registros por faixa etária
-    cardapio_ordenado = [] 
-    definicao_ordenacao = ['A - 0 A 1 MES','B - 1 A 3 MESES','C - 4 A 5 MESES','D - 0 A 5 MESES','D - 6 A 7 MESES','D - 6 MESES','D - 7 MESES','E - 8 A 11 MESES','X - 1A -1A E 11MES','F - 2 A 3 ANOS','G - 4 A 6 ANOS','I - 2 A 6 ANOS','W - EMEI DA CEMEI','N - 6 A 7 MESES PARCIAL','O - 8 A 11 MESES PARCIAL','Y - 1A -1A E 11MES PARCIAL','P - 2 A 3 ANOS PARCIAL','Q - 4 A 6 ANOS PARCIAL','H - ADULTO','Z - UNIDADES SEM FAIXA','S - FILHOS PRO JOVEM','V - PROFESSOR','U - PROFESSOR JANTAR CEI']
-
-    for i in definicao_ordenacao:
-        for c in cardapios: 
-            if idades[i] == c['idade']:
-                cardapio_ordenado.append(c)    
-                continue
- 
 
     response = app.response_class(
         response=json_util.dumps(cardapio_ordenado),
