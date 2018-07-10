@@ -173,6 +173,7 @@ def get_cardapios(data=None):
     for c in cardapios:
         cardapios_geral.append(c)   
 
+
     for i in definicao_ordenacao:
         for c in cardapios_geral:
             if i == c['idade']:
