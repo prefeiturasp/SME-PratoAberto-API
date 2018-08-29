@@ -1,19 +1,77 @@
-[![Maintainability](https://api.codeclimate.com/v1/badges/a96e3bfb2024cd6464f7/maintainability)](https://codeclimate.com/github/prefeiturasp/SME-PratoAberto-API/maintainability)
+
+[![Maintainability](https://api.codeclimate.com/v1/badges/7d34f4c49b56a7c38466/maintainability)](https://codeclimate.com/github/prefeiturasp/SME-PratoAberto-Frontend/maintainability)
+
+# Pátio Digital
+
+_“Recurso público retorna ao público”._
+
+Nós somos o **pátio digital**, uma iniciativa da Secretaria Municipal de Educação de São Paulo que, por meio do fortalecimento da transparência, da participação social e do desenvolvimento de novas tecnologias, aproxima diferentes grupos da sociedade civil por um objetivo maior: a melhoria da educação na cidade de São Paulo. 
+
+# Prato Aberto
+
+"Prato Aberto – Comida Boa Não Tem Segredo". 
 
 # API
 
 A API serve dados sobre as escolas e as refeições das escolas da rede pública da cidade de São Paulo.
 
-## Instalação
 
+## Conteúdo
+
+1. [Sobre o prato aberto](#sobre-o-prato-aberto)
+2. [Comunicação](#comunicação)
+3. [Roadmap de tecnologia](#roadmap-de-tecnologia)
+4. [Como contribuir](#como-contribuir)
+5. [Instalação](#instalação)
+6. [Exemplos de parâmetros de busca e retorno da API](#exemplos-de-parâmetros-de-busca-e-retorno)
+
+## Sobre o prato aberto
+
+Projetada para funcionar em computadores e dispositivos móveis como tablets e celulares. A ferramenta permite a consulta dos cardápios por dia e por escola, com visualização no mapa. É a primeira vez que os cardápios 
+são divulgados por unidade escolar. Além de facilitar a consulta dos cardápios,a plataforma permite a avaliação da qualidade das refeições e prevê interação com usuários via Facebook e Telegram, por meio de um assistente virtual, o Robô Edu.
+
+### Nossos outros repositórios
+
+1. [Robô Edu](https://github.com/prefeiturasp/SME-PratoAberto-Edu)
+2. [API](https://github.com/prefeiturasp/SME-PratoAberto-API)
+3. [Editor](https://github.com/prefeiturasp/SME-PratoAberto-Editor)
+  
+## Comunicação
+
+
+| Canal de comunicação | Objetivos |
+|----------------------|-----------|
+| [Issues do Github](https://github.com/prefeiturasp/SME-PratoAberto-Frontend/issues) | - Sugestão de novas funcionalidades<br> - Reportar bugs<br> - Discussões técnicas |
+| [Telegram](https://t.me/patiodigital ) | - Comunicar novidades sobre os projetos<br> - Movimentar a comunidade<br>  - Falar tópicos que **não** demandem discussões profundas |
+
+Qualquer outro grupo de discussão não é reconhecido oficialmente.
+
+## Roadmap de tecnologia
+
+
+### Passos iniciais
+- Melhorar a qualidade de código
+- Iniciar a escrita de testes para possibilitar refatorações
+- Configurar Docker
+- Iniciar escrita de testes funcionais
+- Melhorar documentação de maneira enxuta
+
+## Como contribuir
+
+Contribuições são **super bem vindas**! Se você tem vontade de construir o
+prato aberto conosco, veja o nosso [guia de contribuição](./CONTRIBUTING.md)
+onde explicamos detalhadamente como trabalhamos e de que formas você pode nos
+ajudar a alcançar nossos objetivos. Lembrando que todos devem seguir 
+nosso [código de conduta](./CODEOFCONDUCT.md).
+
+## Instalação
+ 
 Instale os requisitos através do `requirements.txt` e configure uma variável de ambiente chamada API_MONGO_URI com o apontamento para a base.
 
+1.pip install -r requirements.txt
+2.export API_MONGO_URI=localhost:27017
+3.FLASK_APP=app.py flask run
 ```
-pip install -r requirements.txt
-export API_MONGO_URI=localhost:27017
-FLASK_APP=app.py flask run
-```
-
 # Endpoints
 
 ## /escolas
@@ -21,15 +79,15 @@ FLASK_APP=app.py flask run
 Lista escolas da rede publica.
 
 Argumentos de query string:
-
 ```
+
+## Exemplo de parâmetros de busca e retorno
+
+1.Parametros:
 nome:   string - opcional
         Permite a filtragem da lista de escolas pelo nome
-```
 
-
-
-Retorno:
+1.Retorno:
 
 ```
 [
@@ -49,14 +107,14 @@ Retorno:
 
 Lista detalhes de uma determina escola pelo seu identificador (código Escola Online - EOL)
 
-Parametros:
+2.Parametros:
 
 ```
 id_escola:    int
 ```
 
 
-Retorno:
+2.Retorno:
 
 ```
 {
@@ -79,7 +137,7 @@ Retorno:
 
 Lista os cardapios disponíveis
 
-Parametros:
+3.Parametros:
 
 ```
 data:   string - opcional
@@ -98,7 +156,7 @@ data_final:         string - opcional
 ```
 
 
-Retorno:
+3.Retorno:
 
 ```
 [
@@ -134,7 +192,7 @@ Permite a listagem e a alteração dos dados de cardápio.
 
 Para acesso, é necessário enviar uma chave através do cabeçalho HTTP `key`. A chave deve ser a mesma que a variável de ambiente `API_KEY`
 
-Argumentos de query string:
+4.Argumentos de query string:
 
 ```
 status:             string - opcional
@@ -147,7 +205,7 @@ data_final:         string - opcional
 ```
 
 
-Retorno:
+4.Retorno:
 
 ```
 [
