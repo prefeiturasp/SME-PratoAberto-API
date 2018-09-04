@@ -48,9 +48,9 @@ Qualquer outro grupo de discussão não é reconhecido oficialmente.
 - Melhorar a qualidade de código
 - Iniciar a escrita de testes unitários
 - Configurar Docker
-- Transferir front para o github pages
 - Iniciar escrita de testes funcionais
 - Melhorar documentação de maneira enxuta
+- CI com jenkins
 
 ## Como contribuir
 
