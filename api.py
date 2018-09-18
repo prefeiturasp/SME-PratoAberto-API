@@ -5,9 +5,11 @@ import os
 from flask import Flask, request
 from pymongo import MongoClient
 from bson import json_util
+from users import users_api
 
 
 app = Flask(__name__)
+app.register_blueprint(users_api)
 
 API_KEY = os.environ.get('API_KEY')
 API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
