@@ -22,6 +22,37 @@ with open('de_para.json', 'r') as f:
     idades = conf['idades']
     idades_reversed = {v: k for k, v in conf['idades'].items()}
 
+def fill_data_query(query, data,request):
+    if data:
+        query['data'] = str(data)
+    else:
+        data = {}
+        if request.args.get('data_inicial'):
+            data.update({'$gte': request.args['data_inicial']})
+        if request.args.get('data_final'):
+            data.update({'$lte': request.args['data_final']})
+        if data:
+            query['data'] = data
+    return query
+
+def choose_escola_atributos(escola):
+        if 'idades' in escola:
+            escola['idades'] = [idades.get(x, x) for x in escola['idades']]
+        if 'refeicoes' in escola:
+            escola['refeicoes'] = [refeicoes.get(x, x) for x in escola['refeicoes']]
+        if escola:
+            response = app.response_class(
+                response=json_util.dumps(escola),
+                status=200,
+                mimetype='application/json'
+            )
+        else:
+            response = app.response_class(
+                response=json_util.dumps({'erro': 'Escola inexistente'}),
+                status=404,
+                mimetype='application/json'
+            )
+        return response
 
 @app.route('/escolas')
 def get_lista_escolas():
@@ -50,22 +81,7 @@ def get_detalhe_escola(id_escola):
     query = { '_id': id_escola, 'status': 'ativo' }
     fields = { '_id': False, 'status': False }
     escola = db.escolas.find_one(query, fields)
-    if 'idades' in escola:
-        escola['idades'] = [idades.get(x, x) for x in escola['idades']]
-    if 'refeicoes' in escola:
-        escola['refeicoes'] = [refeicoes.get(x, x) for x in escola['refeicoes']]
-    if escola:
-        response = app.response_class(
-            response=json_util.dumps(escola),
-            status=200,
-            mimetype='application/json'
-        )
-    else:
-        response = app.response_class(
-            response=json_util.dumps({'erro': 'Escola inexistente'}),
-            status=404,
-            mimetype='application/json'
-        )
+    response = choose_escola_atributos(escola)
     return response
 
 
@@ -84,16 +100,7 @@ def get_cardapio_escola(id_escola, data=None):
         if request.args.get('idade'):
             query['idade'] = idades_reversed.get(request.args['idade'])
 
-        if data:
-            query['data'] = str(data)
-        else:
-            data = {}
-            if request.args.get('data_inicial'):
-                data.update({'$gte': request.args['data_inicial']})
-            if request.args.get('data_final'):
-                data.update({'$lte': request.args['data_final']})
-            if data:
-                query['data'] = data
+        query = fill_data_query(query,data,request)
 
         fields = {
             '_id': False,
@@ -139,16 +146,7 @@ def get_cardapios(data=None):
     if request.args.get('idade'):
         query['idade'] = idades_reversed.get(request.args['idade'])
 
-    if data:
-        query['data'] = data
-    else:
-        data = {}
-        if request.args.get('data_inicial'):
-            data.update({'$gte': request.args['data_inicial']})
-        if request.args.get('data_final'):
-            data.update({'$lte': request.args['data_final']})
-        if data:
-            query['data'] = data
+    query = fill_data_query(query, data, request)
 
     limit = int(request.args.get('limit', 0))
     page = int(request.args.get('page', 0))
