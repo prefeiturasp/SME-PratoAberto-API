@@ -27,10 +27,7 @@ def fill_data_query(query, data,request):
         query['data'] = str(data)
     else:
         data = {}
-        if request.args.get('data_inicial'):
-            data.update({'$gte': request.args['data_inicial']})
-        if request.args.get('data_final'):
-            data.update({'$lte': request.args['data_final']})
+        data = update_data(data,request)
         if data:
             query['data'] = data
     return query
@@ -136,6 +133,13 @@ def cardapios_from_db(db):
         cardapios = cardapios.limit(limit)
     return cardapios
 
+def update_data(data,request):
+    if request.args.get('data_inicial'):
+        data.update({'$gte': request.args['data_inicial']})
+    if request.args.get('data_final'):
+        data.update({'$lte': request.args['data_final']})
+
+
 @app.route('/cardapios')
 @app.route('/cardapios/<data>')
 def get_cardapios(data=None):
@@ -210,10 +214,7 @@ def get_cardapios_editor():
         if request.args.get('idade'):
             query['idade'] =  request.args['idade']
         data = {}
-        if request.args.get('data_inicial'):
-            data.update({'$gte': request.args['data_inicial']})
-        if request.args.get('data_final'):
-            data.update({'$lte': request.args['data_final']})
+        data = update_data(data,request)
         if data:
             query['data'] = data
         limit = int(request.args.get('limit', 0))
