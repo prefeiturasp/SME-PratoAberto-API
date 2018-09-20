@@ -106,12 +106,7 @@ def get_cardapio_escola(id_escola, data=None):
 
         _cardapios = []
         cardapios = db.cardapios.find(query, fields).sort([('data', -1)]).limit(15)
-        for c in cardapios:
-            c['idade'] = idades[c['idade']]
-            c['cardapio'] = {refeicoes[k]: v for k, v in c['cardapio'].items()}
-            _cardapios.append(c)
-        cardapios = _cardapios
-
+        c = fill_cardapios_idade(c,cardapio_ordenado,idades,refeicoes)
         response = app.response_class(
             response=json_util.dumps(cardapios),
             status=200,
@@ -125,8 +120,7 @@ def get_cardapio_escola(id_escola, data=None):
         )
     return response
 
-def cardapios_from_db(db):
-    cardapios = db.cardapios.find(query, fields).sort([('data', -1)])
+def cardapios_from_db(page,limit,cardapios):
     if page and limit:
         cardapios = cardapios.skip(limit*(page-1)).limit(limit)
     elif limit:
@@ -138,7 +132,13 @@ def update_data(data,request):
         data.update({'$gte': request.args['data_inicial']})
     if request.args.get('data_final'):
         data.update({'$lte': request.args['data_final']})
+    return data
 
+def fill_cardapios_idade(dictionary,lista_cardapios,idades,refeicoes):
+    for dictionary in lista_cardapios:
+        dictionary['idade'] = idades[c['idade']]
+        dictionary['cardapio'] = {refeicoes[k]: v for k, v in c['cardapio'].items()}
+    return dictionary
 
 @app.route('/cardapios')
 @app.route('/cardapios/<data>')
@@ -162,7 +162,8 @@ def get_cardapios(data=None):
         'status': False,
         'cardapio_original': False,
     }
-    cardapios = cardapios_from_db(db);
+    cardapios = db.cardapios.find(query, fields).sort([('data', -1)])
+    cardapios = cardapios_from_db(page,limit,cardapios);
     _cardapios = []
     cardapio_ordenado = []
     definicao_ordenacao = ['A - 0 A 1 MES','B - 1 A 3 MESES','C - 4 A 5 MESES','D - 0 A 5 MESES','D - 6 A 7 MESES','D - 6 MESES','D - 7 MESES','E - 8 A 11 MESES','X - 1A -1A E 11MES','F - 2 A 3 ANOS','G - 4 A 6 ANOS','I - 2 A 6 ANOS','W - EMEI DA CEMEI','N - 6 A 7 MESES PARCIAL','O - 8 A 11 MESES PARCIAL','Y - 1A -1A E 11MES PARCIAL','P - 2 A 3 ANOS PARCIAL','Q - 4 A 6 ANOS PARCIAL','H - ADULTO','Z - UNIDADES SEM FAIXA','S - FILHOS PRO JOVEM','V - PROFESSOR','U - PROFESSOR JANTAR CEI']
@@ -177,9 +178,7 @@ def get_cardapios(data=None):
                 cardapio_ordenado.append(c)
                 continue
 
-    for c in cardapio_ordenado:
-        c['idade'] = idades[c['idade']]
-        c['cardapio'] = {refeicoes[k]: v for k, v in c['cardapio'].items()}
+    c = fill_cardapios_idade(c,cardapio_ordenado,idades,refeicoes)
 
     for c in cardapio_ordenado:
         for x in refeicoes:
@@ -217,9 +216,11 @@ def get_cardapios_editor():
         data = update_data(data,request)
         if data:
             query['data'] = data
+
         limit = int(request.args.get('limit', 0))
         page = int(request.args.get('page', 0))
-        cardapios = cardapios_from_db(db)
+        cardapios = db.cardapios.find(query).sort([('data', -1)])
+        cardapios = cardapios_from_db(page,limit,cardapios)
         response = app.response_class(
             response=json_util.dumps(cardapios),
             status=200,
