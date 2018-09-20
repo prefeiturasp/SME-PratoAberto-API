@@ -32,7 +32,7 @@ def criar_usuario():
     # Valida email de acordo com padrao da prefeitura
     dominio = email.split("@")[1]
     if (dominio != "sme.prefeitura.sp.gov.br"):
-        response = make_response(jsonify({'HTTP': '406'}), 406)
+        response = make_response(jsonify({'erro': 'Dominio de e-mail nao aceito'}), 406)
 
     else:
         # Criptografa senha
@@ -43,9 +43,9 @@ def criar_usuario():
         # Verifica excecao de indice do MongoDB
         try:
             db.usuarios.insert_one(usuario)
-            response = make_response(jsonify({'HTTP': '201'}), 201)
+            response = make_response(jsonify({'sucesso': 'Usuario criado com sucesso'}), 201)
         except:
-            response = make_response(jsonify({'HTTP': '406'}), 406)
+            response = make_response(jsonify({'erro': 'Nao foi possivel criar esse usuario'}), 406)
 
     return response
 
@@ -57,8 +57,11 @@ def deletar_usuario(email):
     """
     query = {'email': email}
 
-    db.usuarios.delete_one(query)
-    response = make_response(jsonify({'HTTP': '201'}), 201)
+    try:
+        db.usuarios.delete_one(query)
+        response = make_response(jsonify({'sucesso': 'Usuario deletado com sucesso'}), 200)
+    except:
+        response = make_response(jsonify({'erro': 'Nao foi possivel deletar esse usuario'}), 406)
 
     return response
 
@@ -68,8 +71,11 @@ def get_usuarios():
     """
     Endpoint para listar usuarios da API
     """
-    usuarios = db.usuarios.find()
-    response = json_util.dumps(usuarios)
+    try:
+        usuarios = db.usuarios.find()
+        response = json_util.dumps(usuarios)
+    except:
+        response = make_response(jsonify({'erro': 'Nao foi possivel recuperar usuarios'}), 404)
 
     return response
 
@@ -81,8 +87,11 @@ def get_usuario(email):
     """
     query = {'email': email}
 
-    usuario = db.usuarios.find(query)
-    response = json_util.dumps(usuario)
+    try:
+        usuario = db.usuarios.find(query)
+        response = json_util.dumps(usuario)
+    except:
+        response = make_response(jsonify({'erro': 'Nao foi possivel recuperar esse usuario'}), 404)
 
     return response
 
@@ -97,9 +106,12 @@ def editar_usuario(email):
     senha = request.json['senha']
     hs_senha = generate_password_hash(senha, "sha256")
 
-    dados_atualizados = {'$set': {'senha': hs_senha}}
-    db.usuarios.update_one(query, dados_atualizados)
+    try:
+        dados_atualizados = {'$set': {'senha': hs_senha}}
+        db.usuarios.update_one(query, dados_atualizados)
+    except:
+        response = make_response(jsonify({'erro': 'Nao foi possivel atualizar esse usuario'}), 406)
 
-    response = make_response(jsonify({'HTTP': '201'}), 201)
+    response = make_response(jsonify({'HTTP': '201'}), 200)
 
     return response
