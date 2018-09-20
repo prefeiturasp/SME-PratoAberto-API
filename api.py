@@ -84,7 +84,6 @@ def get_detalhe_escola(id_escola):
     response = choose_escola_atributos(escola)
     return response
 
-
 @app.route('/escola/<int:id_escola>/cardapios')
 @app.route('/escola/<int:id_escola>/cardapios/<data>')
 def get_cardapio_escola(id_escola, data=None):
@@ -129,6 +128,13 @@ def get_cardapio_escola(id_escola, data=None):
         )
     return response
 
+def cardapios_from_db(db):
+    cardapios = db.cardapios.find(query, fields).sort([('data', -1)])
+    if page and limit:
+        cardapios = cardapios.skip(limit*(page-1)).limit(limit)
+    elif limit:
+        cardapios = cardapios.limit(limit)
+    return cardapios
 
 @app.route('/cardapios')
 @app.route('/cardapios/<data>')
@@ -136,7 +142,6 @@ def get_cardapios(data=None):
     query = {
         'status': 'PUBLICADO'
     }
-
     if request.args.get('agrupamento'):
         query['agrupamento'] = request.args['agrupamento']
     if request.args.get('tipo_atendimento'):
@@ -145,24 +150,15 @@ def get_cardapios(data=None):
         query['tipo_unidade'] = request.args['tipo_unidade']
     if request.args.get('idade'):
         query['idade'] = idades_reversed.get(request.args['idade'])
-
     query = fill_data_query(query, data, request)
-
     limit = int(request.args.get('limit', 0))
     page = int(request.args.get('page', 0))
-
     fields = {
         '_id': False,
         'status': False,
         'cardapio_original': False,
     }
-
-    cardapios = db.cardapios.find(query, fields).sort([('data', -1)])
-    if page and limit:
-        cardapios = cardapios.skip(limit*(page-1)).limit(limit)
-    elif limit:
-        cardapios = cardapios.limit(limit)
-
+    cardapios = cardapios_from_db(db);
     _cardapios = []
     cardapio_ordenado = []
     definicao_ordenacao = ['A - 0 A 1 MES','B - 1 A 3 MESES','C - 4 A 5 MESES','D - 0 A 5 MESES','D - 6 A 7 MESES','D - 6 MESES','D - 7 MESES','E - 8 A 11 MESES','X - 1A -1A E 11MES','F - 2 A 3 ANOS','G - 4 A 6 ANOS','I - 2 A 6 ANOS','W - EMEI DA CEMEI','N - 6 A 7 MESES PARCIAL','O - 8 A 11 MESES PARCIAL','Y - 1A -1A E 11MES PARCIAL','P - 2 A 3 ANOS PARCIAL','Q - 4 A 6 ANOS PARCIAL','H - ADULTO','Z - UNIDADES SEM FAIXA','S - FILHOS PRO JOVEM','V - PROFESSOR','U - PROFESSOR JANTAR CEI']
@@ -193,13 +189,11 @@ def get_cardapios(data=None):
     )
     return response
 
-
 @app.route('/editor/cardapios', methods=['GET', 'POST'])
 def get_cardapios_editor():
     key = request.headers.get('key')
     if key != API_KEY:
         return ('', 401)
-
     if request.method == 'GET':
         query = {}
 
@@ -222,17 +216,9 @@ def get_cardapios_editor():
             data.update({'$lte': request.args['data_final']})
         if data:
             query['data'] = data
-
-
         limit = int(request.args.get('limit', 0))
         page = int(request.args.get('page', 0))
-
-        cardapios = db.cardapios.find(query).sort([('data', -1)])
-        if page and limit:
-            cardapios = cardapios.skip(limit*(page-1)).limit(limit)
-        elif limit:
-            cardapios = cardapios.limit(limit)
-
+        cardapios = cardapios_from_db(db)
         response = app.response_class(
             response=json_util.dumps(cardapios),
             status=200,
@@ -267,7 +253,6 @@ def get_escolas_editor():
         mimetype='application/json'
     )
     return response
-
 
 @app.route('/editor/escola/<int:id_escola>', methods=['POST'])
 def edit_escola(id_escola):
