@@ -2,7 +2,7 @@
 import json
 import os
 
-from flask import Flask, request
+from flask import Flask, request, jsonify, make_response
 from pymongo import MongoClient
 from bson import json_util
 from users import users_api
@@ -39,13 +39,9 @@ def create_app():
         except KeyError:
             fields.update({k: True for k in ['endereco', 'bairro', 'lat', 'lon']})
             cursor = db.escolas.find(query, fields)
-
-        response = app.response_class(
-            response=json_util.dumps(cursor),
-            status=200,
-            mimetype='application/json'
-        )
-        return response
+        
+        response = list(cursor)
+        return jsonify(response), 200
 
     @app.route('/escola/<int:id_escola>')
     def get_detalhe_escola(id_escola):
@@ -57,17 +53,10 @@ def create_app():
         if 'refeicoes' in escola:
             escola['refeicoes'] = [refeicoes.get(x, x) for x in escola['refeicoes']]
         if escola:
-            response = app.response_class(
-                response=json_util.dumps(escola),
-                status=200,
-                mimetype='application/json'
-            )
+            response = jsonify(escola), 200
         else:
-            response = app.response_class(
-                response=json_util.dumps({'erro': 'Escola inexistente'}),
-                status=404,
-                mimetype='application/json'
-            )
+            response = jsonify({'erro': 'Escola inexistente'}), 404
+
         return response
 
     @app.route('/escola/<int:id_escola>/cardapios')
@@ -110,17 +99,10 @@ def create_app():
                 _cardapios.append(c)
             cardapios = _cardapios
 
-            response = app.response_class(
-                response=json_util.dumps(cardapios),
-                status=200,
-                mimetype='application/json'
-            )
+            response = jsonify(cardapios), 200
         else:
-            response = app.response_class(
-                response=json_util.dumps({'erro': 'Escola inexistente'}),
-                status=404,
-                mimetype='application/json'
-            )
+            response = jsonify({'erro': 'Escola inexistente'}), 404
+
         return response
 
     @app.route('/cardapios')
@@ -187,11 +169,8 @@ def create_app():
                 if refeicoes[x] in c['cardapio']:
                     c['cardapio'][refeicoes[x]] = sorted(c['cardapio'][refeicoes[x]])
 
-        response = app.response_class(
-            response=json_util.dumps(cardapio_ordenado),
-            status=200,
-            mimetype='application/json'
-        )
+        response = jsonify(cardapio_ordenado), 200
+
         return response
 
     @app.route('/editor/cardapios', methods=['GET', 'POST'])
@@ -232,12 +211,7 @@ def create_app():
             elif limit:
                 cardapios = cardapios.limit(limit)
 
-            response = app.response_class(
-                response=json_util.dumps(cardapios),
-                status=200,
-                mimetype='application/json'
-            )
-            return response
+            return jsonify(cardapios), 200
 
         elif request.method == 'POST':
             bulk = db.cardapios.initialize_ordered_bulk_op()
@@ -258,13 +232,8 @@ def create_app():
 
         query = {'status': 'ativo'}
         cursor = db.escolas.find(query)
-
-        response = app.response_class(
-            response=json_util.dumps(cursor),
-            status=200,
-            mimetype='application/json'
-        )
-        return response
+        response = list(cursor)
+        return jsonify(response), 200
 
     @app.route('/editor/escola/<int:id_escola>', methods=['POST'])
     def edit_escola(id_escola):
@@ -275,11 +244,7 @@ def create_app():
         try:
             payload = json_util.loads(request.data)
         except:
-            return app.response_class(
-                response=json_util.dumps({'erro': 'Dados POST não é um JSON válido'}),
-                status=500,
-                mimetype='application/json'
-            )
+            return jsonify({'erro': 'Dados POST não é um JSON válido'}), 500
 
         db.escolas.update_one(
             {'_id': id_escola},
