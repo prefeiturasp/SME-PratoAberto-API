@@ -287,6 +287,14 @@ def create_app():
             upsert=False)
         return ('', 200)
 
+    @app.route('/status')
+    def get_api_status():
+        return app.response_class(
+            response=json_util.dumps({'status': 'ativo'}),
+            status=200,
+            mimetype='application/json'
+        )
+
     return app
 
 
