@@ -14,7 +14,7 @@ db = client['pratoaberto']
 if "usuarios" in db.collection_names():
     usuarios = db['usuarios']
 else:
-    usuarios = db.createCollection("usuarios")
+    usuarios = db.create_collection("usuarios")
 
 index_name = 'email'
 if index_name not in usuarios.index_information():
