@@ -34,7 +34,7 @@ def create_app():
             limit = int(request.args.get('limit', 5))
             # busca por nome
             nome = request.args['nome']
-            query['nome'] = {'$regex': nome.replace(' ', '.*'), '$options': 'i'}
+            query['nome'] = { '$text': { '$search': nome, '$language': 'pt', '$caseSensitive': False, '$diacriticSensitive': False } }
             cursor = db.escolas.find(query, fields).limit(limit)
         except KeyError:
             fields.update({k: True for k in ['endereco', 'bairro', 'lat', 'lon']})
