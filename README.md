@@ -70,6 +70,12 @@ export API_MONGO_URI=localhost:27017
 FLASK_APP=api.py flask run
 ```
 
+## Instalação usando Docker
+
+Dentro do diretório do projeto, inicie a aplicação usando `docker-compose`.
+
+`docker-compose up`
+
 # Endpoints
 
 ## /escolas
