@@ -26,18 +26,47 @@ def create_app():
         idades = conf['idades']
         idades_reversed = {v: k for k, v in conf['idades'].items()}
 
+    def fill_data_query(query, data,request):
+        if data:
+            query['data'] = str(data)
+        else:
+            data = {}
+            data = update_data(data,request)
+            if data:
+                query['data'] = data
+        return query
+
+    def choose_escola_atributos(escola):
+            if 'idades' in escola:
+                escola['idades'] = [idades.get(x, x) for x in escola['idades']]
+            if 'refeicoes' in escola:
+                escola['refeicoes'] = [refeicoes.get(x, x) for x in escola['refeicoes']]
+            if escola:
+                response = app.response_class(
+                    response=json_util.dumps(escola),
+                    status=200,
+                    mimetype='application/json'
+                )
+            else:
+                response = app.response_class(
+                    response=json_util.dumps({'erro': 'Escola inexistente'}),
+                    status=404,
+                    mimetype='application/json'
+                )
+            return response
+
     @app.route('/escolas')
     def get_lista_escolas():
-        query = {'status': 'ativo'}
-        fields = {'_id': True, 'nome': True}
+        query = { 'status': 'ativo' }
+        fields = { '_id': True, 'nome': True }
         try:
             limit = int(request.args.get('limit', 5))
             # busca por nome
             nome = request.args['nome']
-            query['nome'] = {'$regex': nome.replace(' ', '.*'), '$options': 'i'}
+            query['nome'] = { '$regex': nome.replace(' ', '.*'), '$options': 'i' }
             cursor = db.escolas.find(query, fields).limit(limit)
         except KeyError:
-            fields.update({k: True for k in ['endereco', 'bairro', 'lat', 'lon']})
+            fields.update({ k: True for k in ['endereco', 'bairro', 'lat', 'lon']})
             cursor = db.escolas.find(query, fields)
 
         response = app.response_class(
@@ -47,27 +76,13 @@ def create_app():
         )
         return response
 
+
     @app.route('/escola/<int:id_escola>')
     def get_detalhe_escola(id_escola):
-        query = {'_id': id_escola, 'status': 'ativo'}
-        fields = {'_id': False, 'status': False}
+        query = { '_id': id_escola, 'status': 'ativo' }
+        fields = { '_id': False, 'status': False }
         escola = db.escolas.find_one(query, fields)
-        if 'idades' in escola:
-            escola['idades'] = [idades.get(x, x) for x in escola['idades']]
-        if 'refeicoes' in escola:
-            escola['refeicoes'] = [refeicoes.get(x, x) for x in escola['refeicoes']]
-        if escola:
-            response = app.response_class(
-                response=json_util.dumps(escola),
-                status=200,
-                mimetype='application/json'
-            )
-        else:
-            response = app.response_class(
-                response=json_util.dumps({'erro': 'Escola inexistente'}),
-                status=404,
-                mimetype='application/json'
-            )
+        response = choose_escola_atributos(escola)
         return response
 
     @app.route('/escola/<int:id_escola>/cardapios')
@@ -85,16 +100,7 @@ def create_app():
             if request.args.get('idade'):
                 query['idade'] = idades_reversed.get(request.args['idade'])
 
-            if data:
-                query['data'] = str(data)
-            else:
-                data = {}
-                if request.args.get('data_inicial'):
-                    data.update({'$gte': request.args['data_inicial']})
-                if request.args.get('data_final'):
-                    data.update({'$lte': request.args['data_final']})
-                if data:
-                    query['data'] = data
+            query = fill_data_query(query,data,request)
 
             fields = {
                 '_id': False,
@@ -104,12 +110,7 @@ def create_app():
 
             _cardapios = []
             cardapios = db.cardapios.find(query, fields).sort([('data', -1)]).limit(15)
-            for c in cardapios:
-                c['idade'] = idades[c['idade']]
-                c['cardapio'] = {refeicoes[k]: v for k, v in c['cardapio'].items()}
-                _cardapios.append(c)
-            cardapios = _cardapios
-
+            c = fill_cardapios_idade(c,cardapio_ordenado,idades,refeicoes)
             response = app.response_class(
                 response=json_util.dumps(cardapios),
                 status=200,
@@ -123,13 +124,32 @@ def create_app():
             )
         return response
 
+    def cardapios_from_db(page,limit,cardapios):
+        if page and limit:
+            cardapios = cardapios.skip(limit*(page-1)).limit(limit)
+        elif limit:
+            cardapios = cardapios.limit(limit)
+        return cardapios
+
+    def update_data(data,request):
+        if request.args.get('data_inicial'):
+            data.update({'$gte': request.args['data_inicial']})
+        if request.args.get('data_final'):
+            data.update({'$lte': request.args['data_final']})
+        return data
+
+    def fill_cardapios_idade(dictionary,lista_cardapios,idades,refeicoes):
+        for dictionary in lista_cardapios:
+            dictionary['idade'] = idades[c['idade']]
+            dictionary['cardapio'] = {refeicoes[k]: v for k, v in c['cardapio'].items()}
+        return dictionary
+
     @app.route('/cardapios')
     @app.route('/cardapios/<data>')
     def get_cardapios(data=None):
         query = {
             'status': 'PUBLICADO'
         }
-
         if request.args.get('agrupamento'):
             query['agrupamento'] = request.args['agrupamento']
         if request.args.get('tipo_atendimento'):
@@ -138,33 +158,16 @@ def create_app():
             query['tipo_unidade'] = request.args['tipo_unidade']
         if request.args.get('idade'):
             query['idade'] = idades_reversed.get(request.args['idade'])
-
-        if data:
-            query['data'] = data
-        else:
-            data = {}
-            if request.args.get('data_inicial'):
-                data.update({'$gte': request.args['data_inicial']})
-            if request.args.get('data_final'):
-                data.update({'$lte': request.args['data_final']})
-            if data:
-                query['data'] = data
-
+        query = fill_data_query(query, data, request)
         limit = int(request.args.get('limit', 0))
         page = int(request.args.get('page', 0))
-
         fields = {
             '_id': False,
             'status': False,
             'cardapio_original': False,
         }
-
         cardapios = db.cardapios.find(query, fields).sort([('data', -1)])
-        if page and limit:
-            cardapios = cardapios.skip(limit*(page-1)).limit(limit)
-        elif limit:
-            cardapios = cardapios.limit(limit)
-
+        cardapios = cardapios_from_db(page,limit,cardapios);
         _cardapios = []
         cardapio_ordenado = []
         definicao_ordenacao = ['A - 0 A 1 MES','B - 1 A 3 MESES','C - 4 A 5 MESES','D - 0 A 5 MESES','D - 6 A 7 MESES','D - 6 MESES','D - 7 MESES','E - 8 A 11 MESES','X - 1A -1A E 11MES','F - 2 A 3 ANOS','G - 4 A 6 ANOS','I - 2 A 6 ANOS','W - EMEI DA CEMEI','N - 6 A 7 MESES PARCIAL','O - 8 A 11 MESES PARCIAL','Y - 1A -1A E 11MES PARCIAL','P - 2 A 3 ANOS PARCIAL','Q - 4 A 6 ANOS PARCIAL','H - ADULTO','Z - UNIDADES SEM FAIXA','S - FILHOS PRO JOVEM','V - PROFESSOR','U - PROFESSOR JANTAR CEI']
@@ -172,15 +175,14 @@ def create_app():
         for c in cardapios:
             _cardapios.append(c)
 
+
         for i in definicao_ordenacao:
             for c in _cardapios:
                 if i == c['idade']:
                     cardapio_ordenado.append(c)
                     continue
 
-        for c in cardapio_ordenado:
-            c['idade'] = idades[c['idade']]
-            c['cardapio'] = {refeicoes[k]: v for k, v in c['cardapio'].items()}
+        c = fill_cardapios_idade(c,cardapio_ordenado,idades,refeicoes)
 
         for c in cardapio_ordenado:
             for x in refeicoes:
@@ -199,7 +201,6 @@ def create_app():
         key = request.headers.get('key')
         if key != API_KEY:
             return ('', 401)
-
         if request.method == 'GET':
             query = {}
 
@@ -214,24 +215,16 @@ def create_app():
             if request.args.get('tipo_unidade'):
                 query['tipo_unidade'] = request.args['tipo_unidade']
             if request.args.get('idade'):
-                query['idade'] = request.args['idade']
+                query['idade'] =  request.args['idade']
             data = {}
-            if request.args.get('data_inicial'):
-                data.update({'$gte': request.args['data_inicial']})
-            if request.args.get('data_final'):
-                data.update({'$lte': request.args['data_final']})
+            data = update_data(data,request)
             if data:
                 query['data'] = data
 
             limit = int(request.args.get('limit', 0))
             page = int(request.args.get('page', 0))
-
             cardapios = db.cardapios.find(query).sort([('data', -1)])
-            if page and limit:
-                cardapios = cardapios.skip(limit*(page-1)).limit(limit)
-            elif limit:
-                cardapios = cardapios.limit(limit)
-
+            cardapios = cardapios_from_db(page,limit,cardapios)
             response = app.response_class(
                 response=json_util.dumps(cardapios),
                 status=200,
@@ -250,13 +243,14 @@ def create_app():
             bulk.execute()
             return ('', 200)
 
+
     @app.route('/editor/escolas')
     def get_escolas_editor():
         key = request.headers.get('key')
         if key != API_KEY:
             return ('', 401)
 
-        query = {'status': 'ativo'}
+        query = { 'status': 'ativo' }
         cursor = db.escolas.find(query)
 
         response = app.response_class(
@@ -282,8 +276,8 @@ def create_app():
             )
 
         db.escolas.update_one(
-            {'_id': id_escola},
-            {'$set': payload},
+            { '_id': id_escola },
+            { '$set': payload },
             upsert=False)
         return ('', 200)
 
