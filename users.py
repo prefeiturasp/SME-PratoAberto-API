@@ -5,6 +5,15 @@ from pymongo import MongoClient
 from werkzeug.security import generate_password_hash
 from bson import json_util
 
+ERRO_DOMINIO = 'Dominio de e-mail nao aceito'
+SUCESSO_CRIACAO_USUARIO = 'Usuario criado com sucesso'
+ERRO_CRIACAO_USUARIO = 'Nao foi possivel criar esse usuario'
+SUCESSO_DELETAR_USUARIO = 'Usuario deletado com sucesso'
+ERRO_DELETAR_USUARIO = 'Nao foi possivel deletar esse usuario'
+ERRO_RECUPERAR_USUARIOS = 'Nao foi possivel recuperar usuarios'
+ERRO_RECUPERAR_USUARIO = 'Nao foi possivel recuperar esse usuario'
+ERRO_ATUALIZAR_USUARIO = 'Nao foi possivel atualizar esse usuario'
+
 users_api = Blueprint('users_api', __name__)
 
 API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
@@ -32,7 +41,7 @@ def criar_usuario():
     # Valida email de acordo com padrao da prefeitura
     dominio = email.split("@")[1]
     if (dominio != "sme.prefeitura.sp.gov.br"):
-        response = make_response(jsonify({'erro': 'Dominio de e-mail nao aceito'}), 406)
+        response = make_response(jsonify({'erro': ERRO_DOMINIO}), 406)
 
     else:
         # Criptografa senha
@@ -43,9 +52,11 @@ def criar_usuario():
         # Verifica excecao de indice do MongoDB
         try:
             db.usuarios.insert_one(usuario)
-            response = make_response(jsonify({'sucesso': 'Usuario criado com sucesso'}), 201)
+            response = make_response(jsonify({'sucesso':
+                                             SUCESSO_CRIACAO_USUARIO}), 201)
         except:
-            response = make_response(jsonify({'erro': 'Nao foi possivel criar esse usuario'}), 406)
+            response = make_response(jsonify({'erro':
+                                             ERRO_CRIACAO_USUARIO}), 406)
 
     return response
 
@@ -59,9 +70,11 @@ def deletar_usuario(email):
 
     try:
         db.usuarios.delete_one(query)
-        response = make_response(jsonify({'sucesso': 'Usuario deletado com sucesso'}), 200)
+        response = make_response(jsonify({'sucesso':
+                                         SUCESSO_DELETAR_USUARIO}), 200)
     except:
-        response = make_response(jsonify({'erro': 'Nao foi possivel deletar esse usuario'}), 406)
+        response = make_response(jsonify({'erro':
+                                         ERRO_DELETAR_USUARIO}), 406)
 
     return response
 
@@ -75,7 +88,8 @@ def get_usuarios():
         usuarios = db.usuarios.find()
         response = json_util.dumps(usuarios)
     except:
-        response = make_response(jsonify({'erro': 'Nao foi possivel recuperar usuarios'}), 404)
+        response = make_response(jsonify({'erro':
+                                         ERRO_RECUPERAR_USUARIOS}), 404)
 
     return response
 
@@ -91,7 +105,8 @@ def get_usuario(email):
         usuario = db.usuarios.find(query)
         response = json_util.dumps(usuario)
     except:
-        response = make_response(jsonify({'erro': 'Nao foi possivel recuperar esse usuario'}), 404)
+        response = make_response(jsonify({'erro':
+                                         ERRO_RECUPERAR_USUARIO}), 404)
 
     return response
 
@@ -110,7 +125,8 @@ def editar_usuario(email):
         dados_atualizados = {'$set': {'senha': hs_senha}}
         db.usuarios.update_one(query, dados_atualizados)
     except:
-        response = make_response(jsonify({'erro': 'Nao foi possivel atualizar esse usuario'}), 406)
+        response = make_response(jsonify({'erro':
+                                         ERRO_ATUALIZAR_USUARIO}), 406)
 
     response = make_response(jsonify({'HTTP': '201'}), 200)
 
