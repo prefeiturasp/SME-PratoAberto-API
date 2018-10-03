@@ -16,6 +16,7 @@ class TestEditor:
             'Content-Type': 'application/json',
             'Accept': 'application/json',
         }
+        #dados de data para teste
         data = {
                 "nome": "EMEI PAULO CAMILHIER FLORENCANO - (TERCEI.)",
                 "telefone": "(11)25578348",
