@@ -1,3 +1,4 @@
+# coding: utf-8
 import os
 
 from flask import make_response, request, jsonify, Blueprint
@@ -14,7 +15,7 @@ db = client['pratoaberto']
 if "usuarios" in db.collection_names():
     usuarios = db['usuarios']
 else:
-    usuarios = db.createCollection("usuarios")
+    usuarios = db.create_collection("usuarios")
 
 index_name = 'email'
 if index_name not in usuarios.index_information():
@@ -42,7 +43,7 @@ def criar_usuario():
 
         # Verifica excecao de indice do MongoDB
         try:
-            db.usuarios.insert_one(usuario)
+            db.usuarios.insert(usuario)
             response = make_response(jsonify({'sucesso': 'Usuario criado com sucesso'}), 201)
         except:
             response = make_response(jsonify({'erro': 'Nao foi possivel criar esse usuario'}), 406)
