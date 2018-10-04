@@ -30,12 +30,12 @@ def create_app():
     @app.route('/escolas')
     def get_lista_escolas():
         query = {'status': 'ativo'}
-        fields = {'_id': True, 'nome': True}
+        fields = {'_id': True, 'nome': True,'status':True}
         try:
             limit = int(request.args.get('limit', 5))
             # busca por nome
             nome = request.args['nome']
-            query['nome'] = {'$regex': nome.replace(' ', '.*'), '$options': 'i'}
+            query = { '$text': { '$search': nome },'status': 'ativo'}
             cursor = db.escolas.find(query, fields).limit(limit)
         except KeyError:
             fields.update({k: True for k in ['endereco', 'bairro', 'lat', 'lon']})
