@@ -88,7 +88,7 @@ def get_usuario(email):
     query = {'email': email}
 
     try:
-        usuario = db.usuarios.find(query)
+        usuario = db.usuarios.find(query, {'_id': 0})
         response = json_util.dumps(usuario)
     except:
         response = make_response(jsonify({'erro': 'Nao foi possivel recuperar esse usuario'}), 404)
@@ -112,6 +112,6 @@ def editar_usuario(email):
     except:
         response = make_response(jsonify({'erro': 'Nao foi possivel atualizar esse usuario'}), 406)
 
-    response = make_response(jsonify({'HTTP': '201'}), 200)
+    response = make_response(jsonify({'HTTP': '201'}), 201)
 
     return response
