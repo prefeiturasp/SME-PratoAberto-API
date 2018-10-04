@@ -40,7 +40,8 @@ def create_app():
             if 'idades' in escola:
                 escola['idades'] = [idades.get(x, x) for x in escola['idades']]
             if 'refeicoes' in escola:
-                escola['refeicoes'] = [refeicoes.get(x, x) for x in escola['refeicoes']]
+                escola['refeicoes'] = [refeicoes.get(x, x) for
+                                       x in escola['refeicoes']]
 
             if escola:
                 response = app.response_class(
@@ -64,7 +65,8 @@ def create_app():
             limit = int(request.args.get('limit', 5))
             # busca por nome
             nome = request.args['nome']
-            query['nome'] = {'$regex': nome.replace(' ', '.*'), '$options': 'i'}
+            query['nome'] = {'$regex': nome.replace(' ', '.*'),
+                             '$options': 'i'}
             cursor = db.escolas.find(query, fields).limit(limit)
         except KeyError:
             fields.update({k: True for k in ['endereco',
