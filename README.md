@@ -70,6 +70,18 @@ export API_MONGO_URI=localhost:27017
 FLASK_APP=api.py flask run
 ```
 
+Installe MongoDb Versão mínima 3.6:
+
+[Windows](http://treehouse.github.io/installation-guides/windows/mongo-windows.html)
+[Mac](http://treehouse.github.io/installation-guides/mac/mongo-mac.html)
+
+Após instalação:
+```
+mongod --fork --logpath <arquivo_para_logs (exemplo:/var/log/mongod.log)>
+mongorestore -d pratoaberto -c cardapios ./cardapios.bson 
+mongorestore -d pratoaberto -c escolas ./escolas.bson 
+```
+
 # Endpoints
 
 ## /escolas
