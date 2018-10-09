@@ -4,11 +4,11 @@
 
 _“Recurso público retorna ao público”._
 
-Nós somos o **pátio digital**, uma iniciativa da Secretaria Municipal de Educação de São Paulo que, por meio do fortalecimento da transparência, da participação social e do desenvolvimento de novas tecnologias, aproxima diferentes grupos da sociedade civil por um objetivo maior: a melhoria da educação na cidade de São Paulo. 
+Nós somos o **pátio digital**, uma iniciativa da Secretaria Municipal de Educação de São Paulo que, por meio do fortalecimento da transparência, da participação social e do desenvolvimento de novas tecnologias, aproxima diferentes grupos da sociedade civil por um objetivo maior: a melhoria da educação na cidade de São Paulo.
 
 # Prato Aberto
 
-"Prato Aberto – Comida Boa Não Tem Segredo". 
+"Prato Aberto – Comida Boa Não Tem Segredo".
 
 # API do Prato Aberto
 
@@ -24,7 +24,7 @@ A API serve dados sobre as escolas e as refeições das escolas da rede pública
 
 ## Sobre o prato aberto
 
-Projetada para funcionar em computadores e dispositivos móveis como tablets e celulares. A ferramenta permite a consulta dos cardápios por dia e por escola, com visualização no mapa. É a primeira vez que os cardápios 
+Projetada para funcionar em computadores e dispositivos móveis como tablets e celulares. A ferramenta permite a consulta dos cardápios por dia e por escola, com visualização no mapa. É a primeira vez que os cardápios
 são divulgados por unidade escolar. Além de facilitar a consulta dos cardápios,a plataforma permite a avaliação da qualidade das refeições e prevê interação com usuários via Facebook e Telegram, por meio de um assistente virtual, o Robô Edu.
 
 ### Nossos outros repositórios
@@ -57,7 +57,7 @@ Qualquer outro grupo de discussão não é reconhecido oficialmente.
 Contribuições são **super bem vindas**! Se você tem vontade de construir o
 prato aberto conosco, veja o nosso [guia de contribuição](./CONTRIBUTING.md)
 onde explicamos detalhadamente como trabalhamos e de que formas você pode nos
-ajudar a alcançar nossos objetivos. Lembrando que todos devem seguir 
+ajudar a alcançar nossos objetivos. Lembrando que todos devem seguir
 nosso [código de conduta](./CODEOFCONDUCT.md).
 
 ## Instalação
@@ -68,6 +68,18 @@ Instale os requisitos através do `requirements.txt` e configure uma variável d
 pip install -r requirements.txt
 export API_MONGO_URI=localhost:27017
 FLASK_APP=api.py flask run
+```
+
+Installe MongoDb Versão mínima 3.6:
+
+[Windows](http://treehouse.github.io/installation-guides/windows/mongo-windows.html)
+[Mac](http://treehouse.github.io/installation-guides/mac/mongo-mac.html)
+
+Após instalação:
+```
+mongod --fork --logpath <arquivo_para_logs (exemplo:/var/log/mongod.log)>
+mongorestore -d pratoaberto -c cardapios ./cardapios.bson 
+mongorestore -d pratoaberto -c escolas ./escolas.bson 
 ```
 
 # Endpoints
@@ -230,6 +242,19 @@ Retorno:
     },
     ...
 ]
+```
+
+## /status
+
+Verifica se a API está online.
+
+
+Retorno:
+
+```
+{
+    "status": "ativo"
+}
 ```
 
 Baseado no Readme do [i-educar](https://github.com/portabilis/i-educar)
