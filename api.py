@@ -26,6 +26,15 @@ def create_app():
         idades = conf['idades']
         idades_reversed = {v: k for k, v in conf['idades'].items()}
 
+    def copy_for(query, req, key):
+        if req.args.get(key):
+            query[key] = req.args[key]
+        return query
+
+    def dic_to_list(data, dic, key):
+        if key in data:
+            data[key] = [dic.get(x, x) for x in data[key]]
+
     def fill_data_query(query, data, request):
         if data:
             query['data'] = str(data)
@@ -37,11 +46,8 @@ def create_app():
         return query
 
     def choose_escola_atributos(escola):
-            if 'idades' in escola:
-                escola['idades'] = [idades.get(x, x) for x in escola['idades']]
-            if 'refeicoes' in escola:
-                escola['refeicoes'] = [refeicoes.get(x, x) for
-                                       x in escola['refeicoes']]
+            escola = dic_to_list(escola, idades, 'idades')
+            escola = dic_to_list(escola, refeicoes, 'refeicoes')
 
             if escola:
                 response = app.response_class(
@@ -156,14 +162,14 @@ def create_app():
         query = {
             'status': 'PUBLICADO'
         }
-        if request.args.get('agrupamento'):
-            query['agrupamento'] = request.args['agrupamento']
-        if request.args.get('tipo_atendimento'):
-            query['tipo_atendimento'] = request.args['tipo_atendimento']
-        if request.args.get('tipo_unidade'):
-            query['tipo_unidade'] = request.args['tipo_unidade']
+
+        query = copy_for(query, request, 'agrupamento')
+        query = copy_for(query, request, 'tipo_atendimento')
+        query = copy_for(query, request, 'tipo_unidade')
+
         if request.args.get('idade'):
             query['idade'] = idades_reversed.get(request.args['idade'])
+
         query = fill_data_query(query, data, request)
         limit = int(request.args.get('limit', 0))
         page = int(request.args.get('page', 0))
@@ -228,14 +234,12 @@ def create_app():
                 query['status'] = {'$in': request.args.getlist('status')}
             else:
                 query['status'] = 'PUBLICADO'
-            if request.args.get('agrupamento'):
-                query['agrupamento'] = request.args['agrupamento']
-            if request.args.get('tipo_atendimento'):
-                query['tipo_atendimento'] = request.args['tipo_atendimento']
-            if request.args.get('tipo_unidade'):
-                query['tipo_unidade'] = request.args['tipo_unidade']
-            if request.args.get('idade'):
-                query['idade'] = request.args['idade']
+
+            query = copy_for(query, request, 'agrupamento')
+            query = copy_for(query, request, 'tipo_atendimento')
+            query = copy_for(query, request, 'tipo_unidade')
+            query = copy_for(query, request, 'idade')
+
             data = {}
             data = update_data(data, request)
             if data:
