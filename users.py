@@ -1,7 +1,8 @@
+# coding: utf-8
 import os
 
 from flask import make_response, request, jsonify, Blueprint
-from pymongo import MongoClient
+from pymongo import MongoClient,TEXT
 from werkzeug.security import generate_password_hash
 from bson import json_util
 
@@ -25,9 +26,11 @@ if "usuarios" in db.collection_names():
 else:
     usuarios = db.create_collection("usuarios")
 
-index_name = 'email'
-if index_name not in usuarios.index_information():
-    usuarios.create_index(index_name, unique=True)
+if 'email' not in usuarios.index_information():
+    usuarios.create_index('email', unique=True)
+
+if 'nome' not in db.escolas.index_information():
+    db.escolas.create_index([('nome', 'text')])
 
 
 @users_api.route("/usuarios/novo", methods=["POST"])
@@ -51,7 +54,7 @@ def criar_usuario():
 
         # Verifica excecao de indice do MongoDB
         try:
-            db.usuarios.insert_one(usuario)
+            db.usuarios.insert(usuario)
             response = make_response(jsonify({'sucesso':
                                              SUCESSO_CRIACAO_USUARIO}), 201)
         except:
