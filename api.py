@@ -2,7 +2,7 @@
 import json
 import os
 
-from flask import Flask, request
+from flask import Flask, request, jsonify, make_response
 from pymongo import MongoClient
 from bson import json_util
 from users import users_api
@@ -78,20 +78,23 @@ def create_app():
             fields.update({k: True for k in ['endereco',
                                              'bairro', 'lat', 'lon']})
             cursor = db.escolas.find(query, fields)
-
-        response = app.response_class(
-            response=json_util.dumps(cursor),
-            status=200,
-            mimetype='application/json'
-        )
-        return response
+        
+        response = list(cursor)
+        return jsonify(response), 200
 
     @app.route('/escola/<int:id_escola>')
     def get_detalhe_escola(id_escola):
         query = {'_id': id_escola, 'status': 'ativo'}
         fields = {'_id': False, 'status': False}
         escola = db.escolas.find_one(query, fields)
-        response = choose_escola_atributos(escola)
+        if 'idades' in escola:
+            escola['idades'] = [idades.get(x, x) for x in escola['idades']]
+        if 'refeicoes' in escola:
+            escola['refeicoes'] = [refeicoes.get(x, x) for x in escola['refeicoes']]
+        if escola:
+            response = jsonify(escola), 200
+        else:
+            response = jsonify({'erro': 'Escola inexistente'}), 404
         return response
 
     @app.route('/escola/<int:id_escola>/cardapios')
@@ -118,20 +121,17 @@ def create_app():
             }
 
             _cardapios = []
-            cardapios = db.cardapios.find(query, fields).sort([('data',
-                                                                -1)]).limit(15)
-            c = fill_cardapios_idade(c, cardapio_ordenado, idades, refeicoes)
-            response = app.response_class(
-                response=json_util.dumps(cardapios),
-                status=200,
-                mimetype='application/json'
-            )
+            cardapios = db.cardapios.find(query, fields).sort([('data', -1)]).limit(15)
+            for c in cardapios:
+                c['idade'] = idades[c['idade']]
+                c['cardapio'] = {refeicoes[k]: v for k, v in c['cardapio'].items()}
+                _cardapios.append(c)
+            cardapios = _cardapios
+
+            response = jsonify(cardapios), 200
         else:
-            response = app.response_class(
-                response=json_util.dumps({'erro': 'Escola inexistente'}),
-                status=404,
-                mimetype='application/json'
-            )
+            response = jsonify({'erro': 'Escola inexistente'}), 404
+
         return response
 
     def cardapios_from_db(page, limit, cardapios):
@@ -215,11 +215,8 @@ def create_app():
                     c['cardapio'][refeicoes[x]] = sorted(c['cardapio']
                                                           [refeicoes[x]])
 
-        response = app.response_class(
-            response=json_util.dumps(cardapio_ordenado),
-            status=200,
-            mimetype='application/json'
-        )
+        response = jsonify(cardapio_ordenado), 200
+
         return response
 
     @app.route('/editor/cardapios', methods=['GET', 'POST'])
@@ -248,13 +245,12 @@ def create_app():
             limit = int(request.args.get('limit', 0))
             page = int(request.args.get('page', 0))
             cardapios = db.cardapios.find(query).sort([('data', -1)])
-            cardapios = cardapios_from_db(page, limit, cardapios)
-            response = app.response_class(
-                response=json_util.dumps(cardapios),
-                status=200,
-                mimetype='application/json'
-            )
-            return response
+            if page and limit:
+                cardapios = cardapios.skip(limit*(page-1)).limit(limit)
+            elif limit:
+                cardapios = cardapios.limit(limit)
+
+            return jsonify(cardapios), 200
 
         elif request.method == 'POST':
             bulk = db.cardapios.initialize_ordered_bulk_op()
@@ -275,13 +271,8 @@ def create_app():
 
         query = {'status': 'ativo'}
         cursor = db.escolas.find(query)
-
-        response = app.response_class(
-            response=json_util.dumps(cursor),
-            status=200,
-            mimetype='application/json'
-        )
-        return response
+        response = list(cursor)
+        return jsonify(response), 200
 
     @app.route('/editor/escola/<int:id_escola>', methods=['POST'])
     def edit_escola(id_escola):
@@ -292,12 +283,7 @@ def create_app():
         try:
             payload = json_util.loads(request.data)
         except:
-            return app.response_class(
-                response=json_util.dumps({'erro':
-                                         'Dados POST não é um JSON válido'}),
-                status=500,
-                mimetype='application/json'
-            )
+            return jsonify({'erro': 'Dados POST não é um JSON válido'}), 500
 
         db.escolas.update_one(
             {'_id': id_escola},
