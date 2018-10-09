@@ -5,7 +5,7 @@ services:
 
 env:
   matrix:
-    - TASK="docker-compose exec web py.test"
+    - TASK="docker-compose exec web pytest --cov=tests --disable-pytest-warnings"
 
 
 before_script:
