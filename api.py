@@ -8,8 +8,7 @@ from pymongo import MongoClient
 from bson import json_util
 from users import users_api
 
-app = Flask(__name__)
-app.register_blueprint(users_api)
+
 API_KEY = os.environ.get('API_KEY')
 API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
 
@@ -20,6 +19,7 @@ db = client['pratoaberto']
 def create_app():
 
     app = Flask(__name__)
+    app.register_blueprint(users_api)
 
     with open('de_para.json', 'r') as f:
         conf = json.load(f)
