@@ -1,4 +1,35 @@
-[![Maintainability](https://api.codeclimate.com/v1/badges/a96e3bfb2024cd6464f7/maintainability)](https://codeclimate.com/github/prefeiturasp/SME-PratoAberto-API/maintainability)
+[![Maintainability](https://api.codeclimate.com/v1/badges/a96e3bfb2024cd6464f7/maintainability)](https://codeclimate.com/github/prefeiturasp/SME-PratoAberto-API/maintainability) [![Build Status](https://travis-ci.org/prefeiturasp/SME-PratoAberto-API.svg?branch=master)](https://travis-ci.org/prefeiturasp/SME-PratoAberto-API)
+
+
+
+## Instalação
+
+Instale os requisitos através do `requirements.txt` e configure uma variável de ambiente chamada API_MONGO_URI com o apontamento para a base.
+
+```
+pip install -r requirements.txt
+export API_MONGO_URI=localhost:27017
+FLASK_APP=api.py flask run
+```
+
+## Instalação usando Docker
+
+Dentro do diretório do projeto, inicie a aplicação usando `docker-compose`.
+
+`docker-compose up`
+
+
+Instale MongoDB versão mínima 3.6:
+
+[Windows](http://treehouse.github.io/installation-guides/windows/mongo-windows.html)
+[Mac](http://treehouse.github.io/installation-guides/mac/mongo-mac.html)
+
+```
+mongod --fork --logpath <arquivo_para_logs (exemplo:/var/log/mongod.log)>
+mongorestore -d pratoaberto -c cardapios ./cardapios.bson 
+mongorestore -d pratoaberto -c escolas ./escolas.bson 
+```
+
 
 # Pátio Digital
 
@@ -48,7 +79,6 @@ Qualquer outro grupo de discussão não é reconhecido oficialmente.
 - Melhorar a qualidade de código
 - Iniciar a escrita de testes unitários
 - Configurar Docker
-- Iniciar escrita de testes funcionais
 - Melhorar documentação de maneira enxuta
 - CI com jenkins
 
@@ -60,33 +90,7 @@ onde explicamos detalhadamente como trabalhamos e de que formas você pode nos
 ajudar a alcançar nossos objetivos. Lembrando que todos devem seguir
 nosso [código de conduta](./CODEOFCONDUCT.md).
 
-## Instalação
 
-Instale os requisitos através do `requirements.txt` e configure uma variável de ambiente chamada API_MONGO_URI com o apontamento para a base.
-
-```
-pip install -r requirements.txt
-export API_MONGO_URI=localhost:27017
-FLASK_APP=api.py flask run
-```
-
-## Instalação usando Docker
-
-Dentro do diretório do projeto, inicie a aplicação usando `docker-compose`.
-
-`docker-compose up`
-
-
-Instale MongoDB versão mínima 3.6:
-
-[Windows](http://treehouse.github.io/installation-guides/windows/mongo-windows.html)
-[Mac](http://treehouse.github.io/installation-guides/mac/mongo-mac.html)
-
-```
-mongod --fork --logpath <arquivo_para_logs (exemplo:/var/log/mongod.log)>
-mongorestore -d pratoaberto -c cardapios ./cardapios.bson 
-mongorestore -d pratoaberto -c escolas ./escolas.bson 
-```
 
 # Endpoints
 
