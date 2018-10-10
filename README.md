@@ -77,7 +77,7 @@ Dentro do diretório do projeto, inicie a aplicação usando `docker-compose`.
 `docker-compose up`
 
 
-Installe MongoDb Versão mínima 3.6:
+Instale MongoDB versão mínima 3.6:
 
 [Windows](http://treehouse.github.io/installation-guides/windows/mongo-windows.html)
 [Mac](http://treehouse.github.io/installation-guides/mac/mongo-mac.html)
