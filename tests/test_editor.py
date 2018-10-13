@@ -39,7 +39,6 @@ class TestEditor:
 
         assert res.status_code == 200
 
-
     def test_post_invalido_escolas_editor(self, client):
         headers = {
             'Content-Type': 'application/json',
