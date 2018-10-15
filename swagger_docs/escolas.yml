@@ -1,0 +1,17 @@
+Endpoint para retorno de lista de escolas filtradas por nome
+---
+responses:
+  200:
+    description: Lista de escolas
+    examples:
+        [
+            {
+                "_id": 91065,
+                "nome": "EMEI ELIS REGINA - (TERCEI.)",
+                "endereco": "R. ERNESTO MANOGRASSO, 340",
+                "bairro": "CID. SÃO MATEUS",
+                "lat": -23.611117,
+                "lon": -46.479426
+            },
+            ...
+        ]

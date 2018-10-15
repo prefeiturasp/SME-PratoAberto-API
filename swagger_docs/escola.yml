@@ -1,0 +1,25 @@
+Endpoint para listar detalhes de uma determina escola pelo seu identificador (código Escola Online - EOL)
+---
+parameters:
+  - name: id_escola
+    description: Identificador da escola
+    type: int
+    required: true
+responses:
+  200:
+    description: Exemplo de detalhes de escola
+    examples:
+        {
+            "nome": "EMEI ELIS REGINA - (TERCEI.)",
+            "tipo_unidade": "EMEI",
+            "tipo_atendimento": "TERCEIRIZADA",
+            "agrupamento": 4,
+            "endereco": "R. ERNESTO MANOGRASSO, 340",
+            "bairro": "CID. SÃO MATEUS",
+            "telefone": "(11)29199960",
+            "lat": -23.611117,
+            "lon": -46.479426,
+            "idades": [
+                "Z - UNIDADES SEM FAIXA"
+            ]
+        }

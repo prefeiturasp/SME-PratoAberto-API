@@ -6,6 +6,7 @@ from flask import Flask, request
 from pymongo import MongoClient
 from bson import json_util
 from users import users_api, requer_autenticacao
+from flasgger import Swagger, swag_from
 
 
 API_KEY = os.environ.get('API_KEY')
@@ -19,6 +20,8 @@ def create_app():
 
     app = Flask(__name__)
     app.register_blueprint(users_api)
+
+    swagger = Swagger(app)
 
     with open('de_para.json', 'r') as f:
         conf = json.load(f)
@@ -56,6 +59,7 @@ def create_app():
             return response
 
     @app.route('/escolas')
+    @swag_from('swagger_docs/escolas.yml')
     def get_lista_escolas():
         query = { 'status': 'ativo' }
         fields = { '_id': True, 'nome': True }
@@ -78,6 +82,7 @@ def create_app():
 
 
     @app.route('/escola/<int:id_escola>')
+    @swag_from('swagger_docs/escola.yml')
     def get_detalhe_escola(id_escola):
         query = { '_id': id_escola, 'status': 'ativo' }
         fields = { '_id': False, 'status': False }
@@ -146,6 +151,7 @@ def create_app():
 
     @app.route('/cardapios')
     @app.route('/cardapios/<data>')
+    @swag_from('swagger_docs/cardapios.yml')
     def get_cardapios(data=None):
         query = {
             'status': 'PUBLICADO'
