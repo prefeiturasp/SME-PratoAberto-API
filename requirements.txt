@@ -4,3 +4,4 @@ pymongo==3.4.0
 werkzeug
 pytest-flask
 pytest-cov
+pep8
