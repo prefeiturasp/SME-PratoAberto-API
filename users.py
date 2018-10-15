@@ -2,8 +2,10 @@ import os
 
 from flask import make_response, request, jsonify, Blueprint
 from pymongo import MongoClient
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from bson import json_util
+from functools import wraps
+from flask import Response
 
 users_api = Blueprint('users_api', __name__)
 
@@ -19,6 +21,32 @@ else:
 index_name = 'email'
 if index_name not in usuarios.index_information():
     usuarios.create_index(index_name, unique=True)
+
+
+def check_autenticacao(email, senha):
+    """
+    Funcao para checar combinacao de username e password
+    """
+    query = {'email': email}
+
+    try:
+        usuario = db.usuarios.find_one(query, {'_id': 0})
+    except:
+        return False
+
+    return email == usuario['email'] and check_password_hash(usuario['senha'], senha)
+
+
+def requer_autenticacao(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.authorization
+        if not auth or not check_autenticacao(auth.username, auth.password):
+            return Response('Could not verify your access level for that URL.\n'
+                            'You have to login with proper credentials', 401,
+                            {'WWW-Authenticate': 'Basic realm="Login Required"'})
+        return f(*args, **kwargs)
+    return decorated
 
 
 @users_api.route("/usuarios/novo", methods=["POST"])
@@ -51,6 +79,7 @@ def criar_usuario():
 
 
 @users_api.route("/usuario/deletar/<email>", methods=["DELETE"])
+@requer_autenticacao
 def deletar_usuario(email):
     """
     Endpoint para deletar usuario a partir do email
@@ -81,6 +110,7 @@ def get_usuarios():
 
 
 @users_api.route("/usuario/<email>", methods=["GET"])
+@requer_autenticacao
 def get_usuario(email):
     """
     Endpoint para recuperar dados de um usuario a partir do email
@@ -97,6 +127,7 @@ def get_usuario(email):
 
 
 @users_api.route("/usuario/editar/<email>", methods=["PUT"])
+@requer_autenticacao
 def editar_usuario(email):
     """
     Endpoint para editar dados de um usuario a partir do email
