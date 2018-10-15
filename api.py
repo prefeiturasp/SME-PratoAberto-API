@@ -5,7 +5,7 @@ import os
 from flask import Flask, request
 from pymongo import MongoClient
 from bson import json_util
-from users import users_api
+from users import users_api, requer_autenticacao
 
 
 API_KEY = os.environ.get('API_KEY')
@@ -261,6 +261,7 @@ def create_app():
         return response
 
     @app.route('/editor/escola/<int:id_escola>', methods=['POST'])
+    @requer_autenticacao
     def edit_escola(id_escola):
         key = request.headers.get('key')
         if key != API_KEY:
