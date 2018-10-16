@@ -1,0 +1,32 @@
+Endpoint para retorno de lista de escolas com status ativo
+---
+parameters:
+  - in: header
+    name: key
+    type: string
+    required: true
+
+responses:
+  200:
+    description: Lista de escolas
+    examples:
+        [
+            {
+              "bairro": "GUAIANASES",
+              "_id": 86,
+              "nome": "EMEI PAULO CAMILHIER FLORENCANO - (TERCEI.)",
+              "agrupamento": "EDITAL 78/2016",
+              "agrupamento_regiao": 2,
+              "idades": ["Z - UNIDADES SEM FAIXA"],
+              "tipo_unidade": "EMEI",
+              "lon": -46.398452,
+              "edital": "EDITAL 78/2016",
+              "tipo_atendimento": "TERCEIRIZADA",
+              "telefone": "(11)25578348",
+              "refeicoes": ["L5 - LANCHE 5 HORAS", "R1 - REFEICAO 1"],
+              "status": "ativo",
+              "endereco": "R. FELICIANO DE MENDON\u00c7A, 502",
+              "lat": -23.553905
+            },
+            ...
+      ]

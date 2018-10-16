@@ -1,0 +1,16 @@
+Endpoint para realizar um POST para atualização de uma nova escola
+---
+parameters:
+  - in: header
+    name: key
+    type: string
+    required: true
+  - name: id_escola
+    description: Identificador da escola
+    type: int
+    required: true
+responses:
+  200:
+    description: Parametro de resposta vazio
+    examples:
+        {}

@@ -1,0 +1,36 @@
+Endpoint para listar os cardapios de uma determinada escola
+---
+parameters:
+  - name: id_escola
+    description: Identificador da escola
+    type: id
+    required: false
+
+responses:
+  200:
+    description: Exemplo de Lista de cardapios de uma determinada escola
+    examples:
+        [
+          {
+              "data": "20170922",
+              "idade": "1 A 3 MESES",
+              "tipo_atendimento": "DIRETA",
+              "tipo_unidade": "CEI_CONVENIADO",
+              "agrupamento": "4",
+              "cardapio": {
+                  "Jantar": [
+                      "FORMULA LÁCTEA"
+                  ],
+                  "Desjejum": [
+                      "FORMULA LACTEA"
+                  ],
+                  "Almoco": [
+                      "FORMULA LACTEA"
+                  ],
+                  "Lanche": [
+                      "FORMULA LÁCTEA"
+                  ]
+              },
+          },
+          ...
+        ]

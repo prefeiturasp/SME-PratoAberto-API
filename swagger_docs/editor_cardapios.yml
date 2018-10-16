@@ -1,0 +1,89 @@
+Endpoint para listagem e alteração dos dados de cardápio
+---
+parameters:
+
+  - in: header
+    name: API_KEY
+    type: string
+    required: true
+
+  - name: status
+    description: TODO
+    type: string
+    required: false
+
+  - in: query
+    name: agrupamento
+    type: string
+    required: false
+    schema:
+      type: string
+    description: TODO
+
+  - in: query
+    name: tipo_atendimento
+    type: string
+    required: false
+    schema:
+      type: string
+    description: TODO
+
+  - in: query
+    name: tipo_unidade
+    type: string
+    required: false
+    schema:
+      type: string
+    description: TODO
+
+  - in: query
+    name: idade
+    type: string
+    required: false
+    schema:
+      type: string
+    description: TODO
+
+  - in: query
+    name: data_inicial
+    type: string
+    required: false
+    schema:
+      type: string
+    description: TODO
+
+  - in: query
+    name: data_final
+    type: string
+    required: false
+    schema:
+      type: string
+    description: TODO
+responses:
+  200:
+    description: Exemplo de Lista de cardapios
+    examples:
+        [
+          {
+              "data": "20170922",
+              "idade": "1 A 3 MESES",
+              "tipo_atendimento": "DIRETA",
+              "tipo_unidade": "CEI_CONVENIADO",
+              "agrupamento": "4",
+              "cardapio": {
+                  "Jantar": [
+                      "FORMULA LÁCTEA"
+                  ],
+                  "Desjejum": [
+                      "FORMULA LACTEA"
+                  ],
+                  "Almoco": [
+                      "FORMULA LACTEA"
+                  ],
+                  "Lanche": [
+                      "FORMULA LÁCTEA"
+                  ]
+              },
+          },
+          ...
+        ]

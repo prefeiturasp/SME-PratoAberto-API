@@ -92,6 +92,7 @@ def create_app():
 
     @app.route('/escola/<int:id_escola>/cardapios')
     @app.route('/escola/<int:id_escola>/cardapios/<data>')
+    @swag_from('swagger_docs/escola_cardapios.yml')
     def get_cardapio_escola(id_escola, data=None):
         escola = db.escolas.find_one({'_id': id_escola}, {'_id': False})
         if escola:
@@ -203,6 +204,7 @@ def create_app():
         return response
 
     @app.route('/editor/cardapios', methods=['GET', 'POST'])
+    @swag_from('swagger_docs/editor_cardapios.yml')
     def get_cardapios_editor():
         key = request.headers.get('key')
         if key != API_KEY:
@@ -251,6 +253,7 @@ def create_app():
 
 
     @app.route('/editor/escolas')
+    @swag_from('swagger_docs/editor_escolas.yml')
     def get_escolas_editor():
         key = request.headers.get('key')
         if key != API_KEY:
@@ -267,6 +270,7 @@ def create_app():
         return response
 
     @app.route('/editor/escola/<int:id_escola>', methods=['POST'])
+    @swag_from('swagger_docs/editor_escola.yml')
     @requer_autenticacao
     def edit_escola(id_escola):
         key = request.headers.get('key')
