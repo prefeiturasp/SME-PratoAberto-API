@@ -5,3 +5,4 @@ werkzeug
 pytest-flask
 pytest-cov
 flasgger
+pep8
