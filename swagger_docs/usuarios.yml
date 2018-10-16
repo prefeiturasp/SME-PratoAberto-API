@@ -1,0 +1,14 @@
+Endpoint para listagem dos usuários autorizados da aplicação
+---
+responses:
+  200:
+    description: Lista de usuários da aplicação
+    examples:
+        [
+            {
+                "email": "teste@sme.prefeitura.sp.gov.br",
+                "senha": "hashed_password",
+                "_id": "{$oid 170000f527b70}",
+            },
+            ...
+        ]

@@ -1,0 +1,14 @@
+Endpoint DELETE para remoção de um usuário
+---
+parameters:
+  - name: email
+    description: Email com dominio autorizado - @sme.prefeitura.sp.gov.br
+    type: string
+    required: true
+responses:
+  200:
+    description: Mensagem de sucesso
+    examples:
+        {
+            "sucesso": "Usuario deletado com sucesso"
+        }

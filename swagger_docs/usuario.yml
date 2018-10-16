@@ -1,0 +1,21 @@
+Endpoint para recuperar os detalhes de um único usuario da aplicação
+---
+parameters:
+  - name: email
+    description: Email com dominio autorizado - @sme.prefeitura.sp.gov.br
+    type: string
+    required: true
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+responses:
+  200:
+    description: Exemplo de detalhe de um usuario
+    examples:
+      {
+          "email": "teste@sme.prefeitura.sp.gov.br",
+          "senha": "hashed_password",
+          "_id": "{$oid 170000f527b70}",
+      }

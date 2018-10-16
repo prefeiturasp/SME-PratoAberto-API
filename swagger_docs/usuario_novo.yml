@@ -1,0 +1,20 @@
+Endpoint para realizar um POST para cadastro de um novo usuário
+---
+parameters:
+  - in: body
+    name: email
+    description: Email com dominio autorizado - @sme.prefeitura.sp.gov.br
+    type: string
+    required: true
+
+  - in: body
+    name: senha
+    description: Senha do usuario
+    required: true
+responses:
+  201:
+    description: Mensagem de sucesso
+    examples:
+        {
+            "sucesso": "Usuario criado com sucesso"
+        }

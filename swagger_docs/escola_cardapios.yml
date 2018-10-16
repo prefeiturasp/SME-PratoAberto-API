@@ -3,7 +3,7 @@ Endpoint para listar os cardapios de uma determinada escola
 parameters:
   - name: id_escola
     description: Identificador da escola
-    type: id
+    type: int
     required: false
 
 responses:

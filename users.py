@@ -6,6 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from bson import json_util
 from functools import wraps
 from flask import Response
+from flasgger import swag_from
 
 users_api = Blueprint('users_api', __name__)
 
@@ -50,6 +51,7 @@ def requer_autenticacao(f):
 
 
 @users_api.route("/usuarios/novo", methods=["POST"])
+@swag_from('swagger_docs/usuario_novo.yml')
 def criar_usuario():
     """
     Endpoint para criação de usuário
@@ -79,6 +81,7 @@ def criar_usuario():
 
 
 @users_api.route("/usuario/deletar/<email>", methods=["DELETE"])
+@swag_from('swagger_docs/usuario_deletar.yml')
 @requer_autenticacao
 def deletar_usuario(email):
     """
@@ -96,6 +99,7 @@ def deletar_usuario(email):
 
 
 @users_api.route("/usuarios", methods=["GET"])
+@swag_from('swagger_docs/usuarios.yml')
 def get_usuarios():
     """
     Endpoint para listar usuarios da API
@@ -110,6 +114,7 @@ def get_usuarios():
 
 
 @users_api.route("/usuario/<email>", methods=["GET"])
+@swag_from('swagger_docs/usuario.yml')
 @requer_autenticacao
 def get_usuario(email):
     """
@@ -127,6 +132,7 @@ def get_usuario(email):
 
 
 @users_api.route("/usuario/editar/<email>", methods=["PUT"])
+@swag_from('swagger_docs/usuario_editar.yml')
 @requer_autenticacao
 def editar_usuario(email):
     """
