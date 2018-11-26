@@ -16,7 +16,7 @@ FLASK_APP=api.py flask run
 
 Dentro do diretório do projeto, inicie a aplicação usando `docker-compose`.
 
-`docker-compose up`
+`docker-compose up -D --build`
 
 
 Instale MongoDB versão mínima 3.6:
