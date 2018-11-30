@@ -1,4 +1,4 @@
-FROM python:3.5
+FROM python:3.5-alpine3.8
 ADD . /code
 WORKDIR /code
-RUN pip install -r requirements.txt
+RUN python -m pip --no-cache install -r requirements.txt

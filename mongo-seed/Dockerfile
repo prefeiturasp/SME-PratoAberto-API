@@ -1,4 +1,4 @@
-FROM mongo
+FROM mongo:3.4-jessie
 
 COPY db_dump/*.bson /db_dump/
 COPY db_dump/*.json /db_dump/

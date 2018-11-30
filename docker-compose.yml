@@ -18,7 +18,7 @@ services:
       - db
 
   db:
-    image: mongo
+    image: mongo:3.4-jessie
     ports:
       - 27017:27017
 
