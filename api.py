@@ -249,8 +249,8 @@ def create_app():
                 cardapios = cardapios.skip(limit*(page-1)).limit(limit)
             elif limit:
                 cardapios = cardapios.limit(limit)
-
-            return jsonify(cardapios), 200
+            response = json_util.dumps(cardapios)
+            return response, 200
 
         elif request.method == 'POST':
             bulk = db.cardapios.initialize_ordered_bulk_op()
