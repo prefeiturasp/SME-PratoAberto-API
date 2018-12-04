@@ -6,7 +6,10 @@ from bson import json_util
 from flask import Flask, request
 from pymongo import MongoClient
 
+from users import users_api
+
 app = Flask(__name__)
+app.register_blueprint(users_api)
 
 API_KEY = os.environ.get('API_KEY')
 API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
@@ -48,11 +51,11 @@ def get_detalhe_escola(id_escola):
     query = {'_id': id_escola, 'status': 'ativo'}
     fields = {'_id': False, 'status': False}
     escola = db.escolas.find_one(query, fields)
-    if 'idades' in escola:
-        escola['idades'] = [idades.get(x, x) for x in escola['idades']]
-    if 'refeicoes' in escola:
-        escola['refeicoes'] = [refeicoes.get(x, x) for x in escola['refeicoes']]
     if escola:
+        if 'idades' in escola:
+            escola['idades'] = [idades.get(x, x) for x in escola['idades']]
+        if 'refeicoes' in escola:
+            escola['refeicoes'] = [refeicoes.get(x, x) for x in escola['refeicoes']]
         response = app.response_class(
             response=json_util.dumps(escola),
             status=200,
@@ -298,4 +301,4 @@ def edit_escola(id_escola):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5003)
+    app.run(debug=True)
