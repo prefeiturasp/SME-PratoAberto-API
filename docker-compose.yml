@@ -6,7 +6,7 @@ services:
     environment:
       - API_MONGO_URI=db:27017
       - FLASK_APP=api.py
-    command: python -m flask run
+    command: python api.py
     depends_on:
       - db
       - mongo-seed
