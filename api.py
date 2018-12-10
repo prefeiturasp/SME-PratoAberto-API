@@ -194,7 +194,7 @@ def get_cardapios(data=None):
     for c in cardapio_ordenado:
         for x in refeicoes:
             if refeicoes[x] in c['cardapio']:
-                c['cardapio'][refeicoes[x]] = sorted(c['cardapio'][refeicoes[x]])
+                c['cardapio'][refeicoes[x]] = c['cardapio'][refeicoes[x]]
 
     response = app.response_class(
         response=json_util.dumps(cardapio_ordenado),
