@@ -12,8 +12,8 @@ app = Flask(__name__)
 app.register_blueprint(users_api)
 
 API_KEY = os.environ.get('API_KEY')
-# API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
-API_MONGO_URI = 'mongodb://127.0.0.1:27017'
+API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
+# API_MONGO_URI = 'mongodb://127.0.0.1:27017'
 client = MongoClient(API_MONGO_URI)
 db = client['pratoaberto']
 
@@ -301,4 +301,4 @@ def edit_escola(id_escola):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0', port=8080)
+    app.run(debug=True, host='0', port=5000)
