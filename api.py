@@ -7,6 +7,7 @@ from flask import Flask, request
 from pymongo import MongoClient
 
 from users import users_api
+from utils import sort_cardapio_por_refeicao
 
 app = Flask(__name__)
 app.register_blueprint(users_api)
@@ -106,6 +107,7 @@ def get_cardapio_escola(id_escola, data=None):
         cardapios = db.cardapios.find(query, fields).sort([('data', -1)]).limit(15)
         for c in cardapios:
             c['idade'] = idades[c['idade']]
+            c['cardapio'] = sort_cardapio_por_refeicao(c['cardapio'])
             c['cardapio'] = {refeicoes[k]: v for k, v in c['cardapio'].items()}
             _cardapios.append(c)
         cardapios = _cardapios
@@ -192,9 +194,7 @@ def get_cardapios(data=None):
             print('erro de chave: {} objeto {}'.format(str(e), c))
 
     for c in cardapio_ordenado:
-        for x in refeicoes:
-            if refeicoes[x] in c['cardapio']:
-                c['cardapio'][refeicoes[x]] = c['cardapio'][refeicoes[x]]
+        c['cardapio'] = sort_cardapio_por_refeicao(c['cardapio'])
 
     response = app.response_class(
         response=json_util.dumps(cardapio_ordenado),
