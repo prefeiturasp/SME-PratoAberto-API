@@ -14,7 +14,7 @@ app.register_blueprint(users_api)
 
 API_KEY = os.environ.get('API_KEY')
 API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
-
+# API_MONGO_URI = 'mongodb://127.0.0.1:27017'
 client = MongoClient(API_MONGO_URI)
 db = client['pratoaberto']
 
@@ -296,9 +296,9 @@ def edit_escola(id_escola):
     db.escolas.update_one(
         {'_id': id_escola},
         {'$set': payload},
-        upsert=False)
+        upsert=True)
     return ('', 200)
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0', port=5000)

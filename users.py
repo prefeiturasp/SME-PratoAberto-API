@@ -18,6 +18,7 @@ ERRO_ATUALIZAR_USUARIO = 'Nao foi possivel atualizar esse usuario'
 users_api = Blueprint('users_api', __name__)
 
 API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
+# API_MONGO_URI = 'mongodb://{}'.format('127.0.0.1:27017')
 client = MongoClient(API_MONGO_URI)
 db = client['pratoaberto']
 
