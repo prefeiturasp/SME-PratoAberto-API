@@ -283,9 +283,8 @@ def edit_escola(id_escola):
     key = request.headers.get('key')
     if key != API_KEY:
         return ('', 401)
-
     try:
-        payload = json_util.loads(request.data)
+        payload = request.json
     except:
         return app.response_class(
             response=json_util.dumps({'erro': 'Dados POST não é um JSON válido'}),
