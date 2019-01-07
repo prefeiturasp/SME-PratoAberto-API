@@ -17,6 +17,14 @@ def sort_cardapio_por_refeicao(refeicoes_desord):
     return ordenado
 
 
+def remove_refeicao_duplicada_sme_conv(refeicoes):
+    retval = []
+    for refeicao in refeicoes:
+        if refeicao['idade'] != 'Toda Idade':  # remove "toda idade" e deixa somente "todas as idades"
+            retval.append(refeicao)
+    return retval
+
+
 if __name__ == '__main__':
     import json
 

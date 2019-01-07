@@ -7,7 +7,7 @@ from flask import Flask, request
 from pymongo import MongoClient
 
 from users import users_api
-from utils import sort_cardapio_por_refeicao
+from utils import sort_cardapio_por_refeicao, remove_refeicao_duplicada_sme_conv
 
 app = Flask(__name__)
 app.register_blueprint(users_api)
@@ -196,6 +196,9 @@ def get_cardapios(data=None):
     for c in cardapio_ordenado:
         c['cardapio'] = sort_cardapio_por_refeicao(c['cardapio'])
 
+    if query['tipo_unidade'] == 'SME_CONVÊNIO':
+        cardapio_ordenado = remove_refeicao_duplicada_sme_conv(cardapio_ordenado)
+
     response = app.response_class(
         response=json_util.dumps(cardapio_ordenado),
         status=200,
@@ -283,6 +286,8 @@ def edit_escola(id_escola):
     key = request.headers.get('key')
     if key != API_KEY:
         return ('', 401)
+    app.logger.debug(request.json)
+    print('hola mundo')
     try:
         payload = request.json
     except:
