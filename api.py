@@ -271,7 +271,15 @@ def get_escolas_editor():
         return ('', 401)
 
     query = {'status': 'ativo'}
-    cursor = db.escolas.find(query)
+    if request.args:
+        nome = request.args['nome']
+        query['nome'] = {'$regex': nome.replace(' ', '.*'), '$options': 'i'}
+        if request.args['agrupamento'] != 'TODOS':
+            query['agrupamento'] = request.args['agrupamento']
+        if request.args['tipo_atendimento'] != 'TODOS':
+            query['tipo_atendimento'] = request.args['tipo_atendimento']
+
+    cursor = db.escolas.find(query).limit(200)
 
     response = app.response_class(
         response=json_util.dumps(cursor),
