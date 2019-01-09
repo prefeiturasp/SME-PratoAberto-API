@@ -191,7 +191,7 @@ def get_cardapios(data=None):
             c['idade'] = idades[c['idade']]
             c['cardapio'] = {refeicoes[k]: v for k, v in c['cardapio'].items()}
         except KeyError as e:
-            print('erro de chave: {} objeto {}'.format(str(e), c))
+            app.logger.debug('erro de chave: {} objeto {}'.format(str(e), c))
 
     for c in cardapio_ordenado:
         c['cardapio'] = sort_cardapio_por_refeicao(c['cardapio'])
@@ -295,7 +295,6 @@ def edit_escola(id_escola):
     if key != API_KEY:
         return ('', 401)
     app.logger.debug(request.json)
-    print('hola mundo')
     try:
         payload = request.json
     except:
