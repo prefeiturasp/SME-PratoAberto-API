@@ -25,21 +25,12 @@ def remove_refeicao_duplicada_sme_conv(refeicoes):
     return retval
 
 
-if __name__ == '__main__':
-    import json
+def extract_digits(word):
+    digits_extracted = ''.join([p for p in word if p in '0123456789']) or None
+    if digits_extracted:
+        return int(digits_extracted)
+    return digits_extracted
 
-    cardapio = {
-        "Almoço": ["ARROZ", "FEIJ\u00c3O CARIOCA", "FONTE DE PROTE\u00cdNA (*); BATATA DOCE COZIDA", "MA\u00c7\u00c3",
-                   "(*) Fonte de prote\u00edna -\u00a0\u00a0Oferecer semanalmente carne bovina; frango; ovo e peixe (atentar-se a presen\u00e7a de espinhas); quinzenalmente carne su\u00edna (corte magro) e mensalmente PTS."],
-        "Colação": ["MA\u00c7\u00c3"],
-        "Desjejum": ["LEITE MATERNO OU F\u00d3RMULA INFANTIL (2\u00ba SEMESTRE)", "BISCOITO"], "Refeição da Tarde": [
-            "SOPA: MACARR\u00c3O; FEIJ\u00c3O CARIOCA; FONTE DE PROTE\u00cdNA (*); BATATA; CENOURA; CHUCHU", "ABACATE",
-            "(*) Fonte de prote\u00edna \u2013 Carne bovina e frango variando na semana. Variar tamb\u00e9m diariamente a fonte de de prote\u00edna do almo\u00e7o e da refei\u00e7\u00e3o da tarde"],
-        "Lanche": ["LEITE MATERNO OU F\u00d3RMULA INFANTIL (2\u00ba SEMESTRE)"]}
 
-    cardapio_sorted = sort_cardapio_por_refeicao(cardapio)
-    print(cardapio_sorted['Desjejum'])
-
-    print(json.dumps(cardapio, indent=4))
-    print('________')
-    print(json.dumps(cardapio_sorted, indent=4))
+def extract_chars(word):
+    return ''.join([p for p in word if p not in '0123456789'])

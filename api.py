@@ -7,7 +7,10 @@ from flask import Flask, request
 from pymongo import MongoClient
 
 from users import users_api
-from utils import sort_cardapio_por_refeicao, remove_refeicao_duplicada_sme_conv
+from utils import (sort_cardapio_por_refeicao,
+                   remove_refeicao_duplicada_sme_conv,
+                   extract_digits,
+                   extract_chars)
 
 app = Flask(__name__)
 app.register_blueprint(users_api)
@@ -272,8 +275,12 @@ def get_escolas_editor():
 
     query = {'status': 'ativo'}
     if request.args:
-        nome = request.args['nome']
-        query['nome'] = {'$regex': nome.replace(' ', '.*'), '$options': 'i'}
+        nome = extract_chars(request.args['nome'])
+        eol = extract_digits(request.args['nome'])
+        if eol:
+            query['_id'] = eol
+        else:
+            query['nome'] = {'$regex': nome.replace(' ', '.*'), '$options': 'i'}
         if request.args['agrupamento'] != 'TODOS':
             query['agrupamento'] = request.args['agrupamento']
         if request.args['tipo_atendimento'] != 'TODOS':
