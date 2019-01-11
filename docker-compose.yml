@@ -1,7 +1,7 @@
 version: '3'
 
 services:
-  web:
+  api:
     build: .
     environment:
       - API_MONGO_URI=db:27017
@@ -9,9 +9,8 @@ services:
     command: python api.py
     depends_on:
       - db
-      - mongo-seed
-    ports:
-      - 5000:5000
+#    ports:
+#      - 5000:5000
     volumes:
       - .:/code
     links:
@@ -21,10 +20,10 @@ services:
     image: mongo:3.4-jessie
     ports:
       - 27017:27017
+    volumes:
+      - /home/amcom/data_mongo04jan2018:/data/db
 
-  mongo-seed:
-    build: ./mongo-seed
-    depends_on:
-      - db
-    links:
-      - db
+networks:
+  default:
+    external:
+      name: pratoaberto
