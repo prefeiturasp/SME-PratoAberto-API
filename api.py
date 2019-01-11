@@ -17,7 +17,6 @@ app.register_blueprint(users_api)
 
 API_KEY = os.environ.get('API_KEY')
 API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
-# API_MONGO_URI = 'mongodb://127.0.0.1:27017'
 client = MongoClient(API_MONGO_URI)
 db = client['pratoaberto']
 
