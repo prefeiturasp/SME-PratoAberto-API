@@ -318,4 +318,4 @@ def edit_escola(id_escola):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0', port=5000)
+    app.run()
