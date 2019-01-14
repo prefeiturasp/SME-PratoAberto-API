@@ -5,21 +5,17 @@ services:
     build: .
     environment:
       - API_MONGO_URI=db:27017
-      - FLASK_APP=api.py
     command: gunicorn api:app --timeout 120 --log-level DEBUG -w 1 -b 0.0.0.0:8000
     depends_on:
       - db
-    ports:
-      - 8000:8000
     volumes:
       - .:/code
     links:
       - db
+    restart: on-failure:5
 
   db:
     image: mongo:3.4-jessie
-    ports:
-      - 27017:27017
     volumes:
       - /home/amcom/data_mongo04jan2018:/data/db
 
