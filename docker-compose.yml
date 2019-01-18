@@ -17,7 +17,7 @@ services:
   db:
     image: mongo:3.4-jessie
     volumes:
-      - /home/amcom/data_mongo04jan2018:/data/db
+      - /srv/prato_aberto/data_mongo:/data/db
 
 networks:
   default:
