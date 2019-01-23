@@ -2,7 +2,7 @@
 import json
 import os
 
-from bson import json_util
+from bson import json_util, ObjectId
 from flask import Flask, request
 from pymongo import MongoClient
 
@@ -315,6 +315,29 @@ def edit_escola(id_escola):
         {'$set': payload},
         upsert=True)
     return ('', 200)
+
+@app.route('/editor/remove-cardapio', methods=['POST'])
+def remove_cardapios():
+    if request.method == 'POST':
+
+        '''Convert params to disct'''
+        post = request.form['ids']
+        ids_menu = json.loads(post)
+
+        count = 0
+
+        ''' Iteration and remove row'''
+        for id_menu in ids_menu:
+            resp = db.cardapios.delete_one({"_id": ObjectId(id_menu['_id'])})
+            if resp.deleted_count == 1:
+                count += 1
+
+    response = app.response_class(
+        response='{} registro(s) removido(s)'.format(count),
+        status=200,
+        mimetype='application/json'
+    )
+    return response
 
 
 if __name__ == '__main__':
