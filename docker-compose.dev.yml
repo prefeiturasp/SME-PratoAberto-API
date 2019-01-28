@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+  api:
+    build: .
+    environment:
+      - API_MONGO_URI=db:27017
+    command: gunicorn api:app --timeout 120 --log-level DEBUG -w 1 -b 0.0.0.0:8000
+    depends_on:
+      - db
+    volumes:
+      - .:/code
+    links:
+      - db
+    restart: on-failure:5
+    ports:
+      - 8000:8000
+
+  db:
+    image: mongo:3.4-jessie
+    volumes:
+      - /srv/prato_aberto/data_mongo:/data/db
+    ports:
+      - 27017:27017
+
+networks:
+  default:
+    external:
+      name: pratoaberto
