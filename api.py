@@ -6,14 +6,12 @@ from bson import json_util, ObjectId
 from flask import Flask, request
 from pymongo import MongoClient
 
-from users import users_api
 from utils import (sort_cardapio_por_refeicao,
                    remove_refeicao_duplicada_sme_conv,
                    extract_digits,
                    extract_chars)
 
 app = Flask(__name__)
-app.register_blueprint(users_api)
 
 API_KEY = os.environ.get('API_KEY')
 API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
