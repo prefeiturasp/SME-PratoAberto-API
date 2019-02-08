@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+import math
 import os
 
 from bson import json_util, ObjectId
@@ -293,6 +294,58 @@ def get_escolas_editor():
         mimetype='application/json'
     )
     return response
+
+
+@app.route('/v2/editor/escolas')
+def v2_get_escolas_editor():
+    try:
+        key = request.headers.get('key')
+        if key and API_KEY and key != API_KEY:
+            return '', 401
+        query = {'status': 'ativo'}
+        if request.args:
+            nome_ou_eol = request.args.get('nome', None)
+            if nome_ou_eol:
+                if any(char.isdigit() for char in nome_ou_eol):
+                    eol = extract_digits(nome_ou_eol)
+                    query['_id'] = eol
+                else:
+                    nome = extract_chars(nome_ou_eol)
+                    query['nome'] = {'$regex': nome.replace(' ', '.*'), '$options': 'i'}
+            agrupamento = request.args.get('agrupamento', None)
+            if agrupamento and agrupamento != 'TODOS':
+                query['agrupamento'] = agrupamento
+            tipo_atendimento = request.args.get('tipo_atendimento', None)
+            if tipo_atendimento and tipo_atendimento != 'TODOS':
+                query['tipo_atendimento'] = tipo_atendimento
+            tipo_unidade = request.args.get('tipo_unidade', None)
+            if tipo_unidade:
+                query['tipo_unidade'] = {'$regex':  tipo_unidade.replace(' ', '.*'), '$options': 'i'}
+        page = int(request.args.get('page', 1))
+        limit = int(request.args.get('limit', 100))
+        total_documents = db.escolas.find(query).count()
+        total_pages = math.ceil(total_documents / limit)
+        if page > total_pages > 0:
+            raise Exception('pagina nao existe')
+        from_doc = (page * limit) - limit
+        to_doc = page * limit if page * limit < total_documents else total_documents
+        cursor = db.escolas.find(query)[from_doc:to_doc]
+    except Exception as exception:
+        return app.response_class(
+            json_util.dumps({'erro': str(exception)}),
+            status=400,
+            mimetype='application/json'
+        )
+    else:
+        return app.response_class(
+            json_util.dumps([cursor, {
+                'total_pages': total_pages,
+                'next': page + 1 if page < total_pages else None,
+                'previous': page - 1 if page > 1 else None
+            }]),
+            status=200,
+            mimetype='application/json'
+        )
 
 
 @app.route('/editor/escola/<int:id_escola>', methods=['POST'])
