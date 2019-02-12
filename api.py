@@ -346,11 +346,15 @@ def v2_get_escolas_editor():
         )
 
 
-@app.route('/editor/escola/<int:id_escola>', methods=['POST'])
+@app.route('/editor/escola/<int:id_escola>', methods=['POST', 'DELETE'])
 def edit_escola(id_escola):
     key = request.headers.get('key')
     if key != API_KEY:
         return ('', 401)
+    if request.method == 'DELETE':
+        db.escolas.delete_one(
+            {'_id': id_escola})
+        return ('', 200)
     app.logger.debug(request.json)
     try:
         payload = request.json
@@ -360,12 +364,12 @@ def edit_escola(id_escola):
             status=500,
             mimetype='application/json'
         )
-
     db.escolas.update_one(
         {'_id': id_escola},
         {'$set': payload},
         upsert=True)
     return ('', 200)
+
 
 @app.route('/editor/remove-cardapio', methods=['POST'])
 def remove_cardapios():
