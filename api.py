@@ -327,7 +327,7 @@ def v2_get_escolas_editor():
             raise Exception('pagina nao existe')
         from_doc = (page * limit) - limit
         to_doc = page * limit if page * limit < total_documents else total_documents
-        cursor = db.escolas.find(query)[from_doc:to_doc]
+        cursor = db.escolas.find(query).sort('_id', 1)[from_doc:to_doc]
     except Exception as exception:
         return app.response_class(
             json_util.dumps({'erro': str(exception)}),
