@@ -382,10 +382,10 @@ def remove_cardapios():
         count = 0
 
         ''' Iteration and remove row'''
-        for id_menu in ids_menu:
-            resp = db.cardapios.delete_one({"_id": ObjectId(id_menu['_id'])})
-            if resp.deleted_count == 1:
-                count += 1
+        for ids in ids_menu:
+            count += 1
+            for _id in ids['_ids'].split(','):
+                db.cardapios.delete_one({"_id": ObjectId(_id)})
 
     response = app.response_class(
         response='{} registro(s) removido(s)'.format(count),
