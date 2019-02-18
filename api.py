@@ -2,10 +2,12 @@
 import json
 import math
 import os
+from datetime import datetime
 
 from bson import json_util, ObjectId
-from flask import Flask, request
+from flask import Flask, request, render_template
 from pymongo import MongoClient
+from flask_weasyprint import HTML, render_pdf
 
 from utils import (sort_cardapio_por_refeicao,
                    remove_refeicao_duplicada_sme_conv,
@@ -15,6 +17,7 @@ from utils import (sort_cardapio_por_refeicao,
 app = Flask(__name__)
 
 API_KEY = os.environ.get('API_KEY')
+# API_MONGO_URI = 'mongodb://localhost:27017'
 API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
 client = MongoClient(API_MONGO_URI)
 db = client['pratoaberto']
@@ -130,45 +133,69 @@ def get_cardapio_escola(id_escola, data=None):
 @app.route('/cardapios')
 @app.route('/cardapios/<data>')
 def get_cardapios(data=None):
+    cardapio_ordenado = __find_menu_json(request, data)
+
+    response = app.response_class(
+        response=json_util.dumps(cardapio_ordenado),
+        status=200,
+        mimetype='application/json'
+    )
+    return response
+
+
+@app.route('/report.pdf')
+@app.route('/report/<data>')
+def report_menu(data=None):
+    response_menu = __find_menu_json(request, data)
+    response = {}
+
+    inicio = datetime.strptime(request.args.get('data_inicial'),'%Y%m%d')
+    fim = datetime.strptime(request.args.get('data_final'),'%Y%m%d')
+
+    response['inicio'] = datetime.strftime(inicio,'%d/%m/%Y')
+    response['fim'] = datetime.strftime(fim,'%d/%m/%Y')
+    response['response'] = response_menu
+
+
+    html = render_template('report.html',menu=response)
+    return render_pdf(HTML(string=html))
+
+
+def __find_menu_json(request_data, data):
+    """ Return json's menu from a school """
     query = {
         'status': 'PUBLICADO'
     }
-
-    if request.args.get('agrupamento'):
-        query['agrupamento'] = request.args['agrupamento']
-    if request.args.get('tipo_atendimento'):
-        query['tipo_atendimento'] = request.args['tipo_atendimento']
-    if request.args.get('tipo_unidade'):
-        query['tipo_unidade'] = request.args['tipo_unidade']
-    if request.args.get('idade'):
-        query['idade'] = idades_reversed.get(request.args['idade'])
-
+    if request_data.args.get('agrupamento'):
+        query['agrupamento'] = request_data.args['agrupamento']
+    if request_data.args.get('tipo_atendimento'):
+        query['tipo_atendimento'] = request_data.args['tipo_atendimento']
+    if request_data.args.get('tipo_unidade'):
+        query['tipo_unidade'] = request_data.args['tipo_unidade']
+    if request_data.args.get('idade'):
+        query['idade'] = idades_reversed.get(request_data.args['idade'])
     if data:
         query['data'] = data
     else:
         data = {}
-        if request.args.get('data_inicial'):
-            data.update({'$gte': request.args['data_inicial']})
-        if request.args.get('data_final'):
-            data.update({'$lte': request.args['data_final']})
+        if request_data.args.get('data_inicial'):
+            data.update({'$gte': request_data.args['data_inicial']})
+        if request_data.args.get('data_final'):
+            data.update({'$lte': request_data.args['data_final']})
         if data:
             query['data'] = data
-
-    limit = int(request.args.get('limit', 0))
-    page = int(request.args.get('page', 0))
-
+    limit = int(request_data.args.get('limit', 0))
+    page = int(request_data.args.get('page', 0))
     fields = {
         '_id': False,
         'status': False,
         'cardapio_original': False,
     }
-
     cardapios = db.cardapios.find(query, fields).sort([('data', -1)])
     if page and limit:
         cardapios = cardapios.skip(limit * (page - 1)).limit(limit)
     elif limit:
         cardapios = cardapios.limit(limit)
-
     _cardapios = []
     cardapio_ordenado = []
     definicao_ordenacao = ['A - 0 A 1 MES', 'B - 1 A 3 MESES', 'C - 4 A 5 MESES', 'D - 0 A 5 MESES', 'D - 6 A 7 MESES',
@@ -177,35 +204,24 @@ def get_cardapios(data=None):
                            'O - 8 A 11 MESES PARCIAL', 'Y - 1A -1A E 11MES PARCIAL', 'P - 2 A 3 ANOS PARCIAL',
                            'Q - 4 A 6 ANOS PARCIAL', 'H - ADULTO', 'Z - UNIDADES SEM FAIXA', 'S - FILHOS PRO JOVEM',
                            'V - PROFESSOR', 'U - PROFESSOR JANTAR CEI']
-
     for c in cardapios:
         _cardapios.append(c)
-
     for i in definicao_ordenacao:
         for c in _cardapios:
             if i == c['idade']:
                 cardapio_ordenado.append(c)
                 continue
-
     for c in cardapio_ordenado:
         try:
             c['idade'] = idades[c['idade']]
             c['cardapio'] = {refeicoes[k]: v for k, v in c['cardapio'].items()}
         except KeyError as e:
             app.logger.debug('erro de chave: {} objeto {}'.format(str(e), c))
-
     for c in cardapio_ordenado:
         c['cardapio'] = sort_cardapio_por_refeicao(c['cardapio'])
-
     if query['tipo_unidade'] == 'SME_CONVÊNIO':
         cardapio_ordenado = remove_refeicao_duplicada_sme_conv(cardapio_ordenado)
-
-    response = app.response_class(
-        response=json_util.dumps(cardapio_ordenado),
-        status=200,
-        mimetype='application/json'
-    )
-    return response
+    return cardapio_ordenado
 
 
 @app.route('/editor/cardapios', methods=['GET', 'POST'])
@@ -318,7 +334,7 @@ def v2_get_escolas_editor():
                 query['tipo_atendimento'] = tipo_atendimento
             tipo_unidade = request.args.get('tipo_unidade', None)
             if tipo_unidade:
-                query['tipo_unidade'] = {'$regex':  tipo_unidade.replace(' ', '.*'), '$options': 'i'}
+                query['tipo_unidade'] = {'$regex': tipo_unidade.replace(' ', '.*'), '$options': 'i'}
         page = int(request.args.get('page', 1))
         limit = int(request.args.get('limit', 100))
         total_documents = db.escolas.find(query).count()
@@ -396,4 +412,5 @@ def remove_cardapios():
 
 
 if __name__ == '__main__':
+    # app.run(port=7000, debug=True, host='127.0.0.1')
     app.run()
