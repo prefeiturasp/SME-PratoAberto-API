@@ -7,7 +7,7 @@ from datetime import datetime
 from bson import json_util, ObjectId
 from flask import Flask, request, render_template
 from pymongo import MongoClient
-from flask_weasyprint import HTML, render_pdf
+import utils
 
 from utils import (sort_cardapio_por_refeicao,
                    remove_refeicao_duplicada_sme_conv,
@@ -17,8 +17,8 @@ from utils import (sort_cardapio_por_refeicao,
 app = Flask(__name__)
 
 API_KEY = os.environ.get('API_KEY')
-# API_MONGO_URI = 'mongodb://localhost:27017'
-API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
+API_MONGO_URI = 'mongodb://localhost:27017'
+# API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
 client = MongoClient(API_MONGO_URI)
 db = client['pratoaberto']
 
@@ -143,22 +143,101 @@ def get_cardapios(data=None):
     return response
 
 
+@app.route('/test-report-template')
+def test_report_template():
+    return render_template('teste.html')
+
+
 @app.route('/report.pdf')
 @app.route('/report/<data>')
 def report_menu(data=None):
     response_menu = __find_menu_json(request, data)
     response = {}
 
-    inicio = datetime.strptime(request.args.get('data_inicial'),'%Y%m%d')
-    fim = datetime.strptime(request.args.get('data_final'),'%Y%m%d')
+    all_menu_information = __create_menu_list(response_menu)
+    # __tests_date(all_menu_information)
 
-    response['inicio'] = datetime.strftime(inicio,'%d/%m/%Y')
-    response['fim'] = datetime.strftime(fim,'%d/%m/%Y')
+    inicio = datetime.strptime(request.args.get('data_inicial'), '%Y%M%d')
+    fim = datetime.strptime(request.args.get('data_final'), '%Y%m%d')
+
+    current_date = '{} a {} de {} de {}'.format(inicio.day, fim.day, utils.translate_date_month(inicio.month), fim.year)
+
+    response['school_name'] = response_menu[0]['tipo_unidade'].replace('_', ' ')
+    response['inicio'] = datetime.strftime(inicio, '%d/%m/%Y')
+    response['fim'] = datetime.strftime(fim, '%d/%m/%Y')
     response['response'] = response_menu
+    response['week_menu'] = current_date
+
+    # html = render_template('teste.html', menu=response, descriptions=all_menu_information)
+    # return html
+    return app.response_class(
+        response=json_util.dumps(all_menu_information),
+        status=200,
+        mimetype='application/json'
+    )
 
 
-    html = render_template('report.html',menu=response)
-    return render_pdf(HTML(string=html))
+@app.template_filter('fmt_day_month')
+def format_day_month(value):
+    if value is not None:
+        current_date = datetime.strptime(value, '%Y%m%d')
+        return datetime.strftime(current_date, '%d/%m')
+    return value
+
+
+@app.template_filter('fmt_week_day')
+def format_day_month(value):
+    if value is not None:
+        current_date = datetime.strptime(value, '%Y%m%d')
+        return utils.translate_date_week(current_date.weekday())
+    return value
+
+
+def __tests_date(data_dict):
+    for key, value in data_dict.items():
+        print('==== Faixa Etária : {} ==== '.format(key))
+        for k, v in value.items():
+            print('------ Data: {} ------'.format(k))
+            for ke, val in v.items():
+                print('-------- Periodo : {} --------'.format(ke))
+                print(val)
+
+
+def __create_menu_list(data_dict):
+    date_from_week = __assemble_list_date_week(data_dict)
+    date_from_age = __assemble_list_age(data_dict)
+
+    date_with_menu = {}
+    date_with_age = {}
+
+    for data in data_dict:
+        for age in date_from_age:
+            for day in date_from_week:
+                if age in data['idade'] and day in data['data']:
+                    date_with_menu[day] = data['cardapio']
+                    date_with_age[age] = date_with_menu
+
+    return date_with_age
+
+
+def __assemble_list_date_week(data_dict):
+    date_week_list = []
+
+    for day in data_dict:
+        if day['data'] not in date_week_list:
+            date_week_list.append(day['data'])
+
+    return date_week_list
+
+
+def __assemble_list_age(data_dict):
+    age_menu_list = []
+
+    for age in data_dict:
+        if age['idade'] not in age_menu_list:
+            age_menu_list.append(age['idade'])
+
+    return age_menu_list
 
 
 def __find_menu_json(request_data, data):
@@ -412,5 +491,5 @@ def remove_cardapios():
 
 
 if __name__ == '__main__':
-    # app.run(port=7000, debug=True, host='127.0.0.1')
-    app.run()
+    app.run(port=7000, debug=True)
+    # app.run()
