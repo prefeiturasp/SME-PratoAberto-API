@@ -5,8 +5,9 @@ import os
 from datetime import datetime
 
 from bson import json_util, ObjectId
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, send_file
 from pymongo import MongoClient
+from xhtml2pdf import pisa
 import utils
 
 from utils import (sort_cardapio_por_refeicao,
@@ -17,8 +18,8 @@ from utils import (sort_cardapio_por_refeicao,
 app = Flask(__name__)
 
 API_KEY = os.environ.get('API_KEY')
-# API_MONGO_URI = 'mongodb://localhost:27017'
-API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
+API_MONGO_URI = 'mongodb://localhost:27017'
+# API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
 client = MongoClient(API_MONGO_URI)
 db = client['pratoaberto']
 
@@ -143,7 +144,7 @@ def get_cardapios(data=None):
     return response
 
 
-@app.route('/test-report-template')
+@app.route('/test-report-templates')
 def test_report_template():
     return render_template('teste.html')
 
@@ -155,26 +156,21 @@ def report_menu(data=None):
     response = {}
 
     all_menu_information = __create_menu_list(response_menu)
-    # __tests_date(all_menu_information)
 
     inicio = datetime.strptime(request.args.get('data_inicial'), '%Y%M%d')
     fim = datetime.strptime(request.args.get('data_final'), '%Y%m%d')
 
     current_date = '{} a {} de {} de {}'.format(inicio.day, fim.day, utils.translate_date_month(inicio.month), fim.year)
-
     response['school_name'] = response_menu[0]['tipo_unidade'].replace('_', ' ')
-    response['inicio'] = datetime.strftime(inicio, '%d/%m/%Y')
-    response['fim'] = datetime.strftime(fim, '%d/%m/%Y')
     response['response'] = response_menu
     response['week_menu'] = current_date
 
-    # html = render_template('teste.html', menu=response, descriptions=all_menu_information)
+    html = render_template('report.html', menu=response, descriptions=all_menu_information)
     # return html
-    return app.response_class(
-        response=json_util.dumps(all_menu_information),
-        status=200,
-        mimetype='application/json'
-    )
+    pdf = _create_pdf(html)
+    pdf_name = pdf.split('/')[-1]
+
+    return send_file(pdf, mimetype=pdf_name)
 
 
 @app.template_filter('fmt_day_month')
@@ -193,6 +189,30 @@ def format_day_month(value):
     return value
 
 
+# Factory PDF
+def _create_pdf(pdf_data):
+    # pdf = BytesIO()
+    # pisa.CreatePDF(src=pdf_data,dest='static/')
+    # return pdf
+    # open output file for writing (truncated binary)
+    today = datetime.now()
+
+    cdir = os.path.dirname(os.path.realpath(__file__))
+    path = os.path.join(cdir, 'static')
+    name = 'cardapio_mensal_{}.pdf'.format(datetime.strftime(today, '%d_%m_%Y_%H_%M_%S'))
+    filename = os.path.join(path, name)
+
+    resultFile = open(filename, "w+b")
+
+    # convert HTML to PDF
+    pisaStatus = pisa.CreatePDF(pdf_data, dest=resultFile)  # file handle to recieve result
+
+    # close output file
+    resultFile.close()
+
+    return filename
+
+
 def __tests_date(data_dict):
     for key, value in data_dict.items():
         print('==== Faixa Etária : {} ==== '.format(key))
@@ -209,7 +229,6 @@ def __create_menu_list(data_dict):
 
     date_with_menu = {}
     date_with_age = {}
-
     for data in data_dict:
         for age in date_from_age:
             for day in date_from_week:
@@ -227,7 +246,7 @@ def __assemble_list_date_week(data_dict):
         if day['data'] not in date_week_list:
             date_week_list.append(day['data'])
 
-    return date_week_list
+    return sorted(date_week_list)
 
 
 def __assemble_list_age(data_dict):
@@ -491,5 +510,5 @@ def remove_cardapios():
 
 
 if __name__ == '__main__':
-    # app.run(port=7000, debug=True)
-    app.run()
+    app.run(port=7000, debug=True)
+    # app.run()

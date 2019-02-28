@@ -34,3 +34,35 @@ def extract_digits(word):
 
 def extract_chars(word):
     return ''.join([p for p in word if p not in '0123456789'])
+
+
+def translate_date_month(month):
+    month_dict = {
+        1: 'Janeiro',
+        2: 'Fevereiro',
+        3: 'Março',
+        4: 'Abril',
+        5: 'Maio',
+        6: 'Junho',
+        7: 'Julho',
+        8: 'Agosto',
+        9: 'Setembro',
+        10: 'Outubro',
+        11: 'Novembro',
+        12: 'Dezembro',
+    }
+    return month_dict[month]
+
+
+def translate_date_week(day):
+    week_day = {
+        0: 'Segunda-feira',
+        1: 'Terça-feira',
+        2: 'Quarta-feira',
+        3: 'Quinta-feira',
+        4: 'Sexta-feira',
+        5: 'Sábado',
+        6: 'Domingo',
+    }
+
+    return week_day[day]
