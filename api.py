@@ -149,13 +149,23 @@ def test_report_template():
     return render_template('teste.html')
 
 
-@app.route('/report.pdf')
+def _filter_category(descriptions):
+    category_dict = {}
+
+    for age, day in descriptions.items():
+        for day, menu in day.items():
+            category_dict[age] = menu.keys()
+    return category_dict
+
+
+@app.route('/report')
 @app.route('/report/<data>')
 def report_menu(data=None):
     response_menu = __find_menu_json(request, data)
     response = {}
-
     all_menu_information = __create_menu_list(response_menu)
+
+    _reorganizes_data_menu(response_menu)
 
     inicio = datetime.strptime(request.args.get('data_inicial'), '%Y%M%d')
     fim = datetime.strptime(request.args.get('data_final'), '%Y%m%d')
@@ -165,27 +175,80 @@ def report_menu(data=None):
     response['response'] = response_menu
     response['week_menu'] = current_date
 
-    html = render_template('report.html', menu=response, descriptions=all_menu_information)
-    # return html
-    pdf = _create_pdf(html)
-    pdf_name = pdf.split('/')[-1]
+    category_filtered = _filter_category(all_menu_information)
 
-    return send_file(pdf, mimetype=pdf_name)
+    html = render_template('report.html', menu=response, descriptions=all_menu_information,
+                           categories=category_filtered)
+    return html
+    # pdf = _create_pdf(html)
+    # pdf_name = pdf.split('/')[-1]
+    #
+    # return send_file(pdf, mimetype=pdf_name)
+
+
+def _reorganizes_date(menu_dict):
+    date_dict = {}
+
+    for age, menu in menu_dict.items():
+        date_dict[age] = []
+        for key in menu:
+            if key['data'] not in date_dict[age]:
+                date_dict[age].append(key['data'])
+
+    return date_dict
+
+
+def _reorganizes_category(menu_dict):
+    category_dict = {}
+    for age, menu in menu_dict.items():
+        for day in menu:
+            category_dict[age] = day['cardapio'].keys()
+
+    return category_dict
+
+
+@app.route('/cardapio-pdf')
+@app.route('/cardapio-pdf/<data>')
+def report_pdf(data=None):
+    response_menu = __find_menu_json(request, data)
+    response = {}
+
+    formated_data = _reorganizes_data_menu(response_menu)
+    date_organizes = _reorganizes_date(formated_data)
+    catergory_ordered = _reorganizes_category(formated_data)
+
+    inicio = datetime.strptime(request.args.get('data_inicial'), '%Y%M%d')
+    fim = datetime.strptime(request.args.get('data_final'), '%Y%m%d')
+
+
+
+    current_date = '{} a {} de {} de {}'.format(inicio.day, fim.day, utils.translate_date_month(inicio.month), fim.year)
+    response['school_name'] = response_menu[0]['tipo_unidade'].replace('_', ' ')
+    response['response'] = response_menu
+    response['week_menu'] = current_date
+
+    html = render_template('cardapio-pdf.html', resp=response, descriptions=formated_data, dates=date_organizes,
+                           categories=catergory_ordered)
+    return html
+    # pdf = _create_pdf(html)
+    # pdf_name = pdf.split('/')[-1]
+    #
+    # return send_file(pdf, mimetype=pdf_name)
 
 
 @app.template_filter('fmt_day_month')
 def format_day_month(value):
     if value is not None:
-        current_date = datetime.strptime(value, '%Y%m%d')
-        return datetime.strftime(current_date, '%d/%m')
+        # current_date = datetime.strptime(value, '%Y%m%d')
+        return datetime.strftime(value, '%d/%m')
     return value
 
 
 @app.template_filter('fmt_week_day')
 def format_day_month(value):
     if value is not None:
-        current_date = datetime.strptime(value, '%Y%m%d')
-        return utils.translate_date_week(current_date.weekday())
+        # current_date = datetime.strptime(value, '%Y%m%d')
+        return utils.translate_date_week(value.weekday())
     return value
 
 
@@ -213,15 +276,7 @@ def _create_pdf(pdf_data):
     return filename
 
 
-def __tests_date(data_dict):
-    for key, value in data_dict.items():
-        print('==== Faixa Etária : {} ==== '.format(key))
-        for k, v in value.items():
-            print('------ Data: {} ------'.format(k))
-            for ke, val in v.items():
-                print('-------- Periodo : {} --------'.format(ke))
-                print(val)
-
+# Reorganizes datas from menu week
 
 def __create_menu_list(data_dict):
     date_from_week = __assemble_list_date_week(data_dict)
@@ -237,6 +292,34 @@ def __create_menu_list(data_dict):
                     date_with_age[age] = date_with_menu
 
     return date_with_age
+
+
+def _reorganizes_data_menu(menu_dict):
+    age_list = []
+    age_dict = {}
+
+    [age_list.append(value['idade']) for value in menu_dict if value['idade'] not in age_list]
+
+    for age in age_list:
+        for data in menu_dict:
+            if data['idade'] == age:
+                age_dict[age] = []
+        for data in menu_dict:
+            if data['idade'] in age_dict:
+                age_dict[age] = []
+
+    return _sepate_for_age(age_dict, menu_dict)
+
+
+def _sepate_for_age(key_dict, data_dict):
+    for value in data_dict:
+        if value['idade'] in key_dict.keys():
+            key_dict[value['idade']].append({'data': _converter_to_date(value['data']), 'cardapio': value['cardapio']})
+    return key_dict
+
+
+def _converter_to_date(str_date):
+    return datetime.strptime(str_date, '%Y%m%d')
 
 
 def __assemble_list_date_week(data_dict):

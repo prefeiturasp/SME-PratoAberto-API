@@ -5940,7 +5940,7 @@ table th[class*="span"],
 
     <div class="row-fluid">
 
-        {% for age, day in descriptions.items() %}
+        {% for age, menu in descriptions.items() %}
 
             <div class="span12">
                 <div class="row-fluid">
@@ -5948,8 +5948,8 @@ table th[class*="span"],
                         <p class="title text-left text-uppercase font-weight-bold">CARDÁPIO SEMANAL</p>
                     </div>
                     <div class="span6 offset7">
-                        <p class="period text-right font-weight-bold">{{ menu.week_menu }}</p>
-                        <p class="school-name text-right font-weight-normal">{{ menu.school_name }}</p>
+                        <p class="period text-right font-weight-bold">{{ resp.week_menu }}</p>
+                        <p class="school-name text-right font-weight-normal">{{ resp.school_name }}</p>
                     </div>
                 </div>
             </div>
@@ -5959,20 +5959,36 @@ table th[class*="span"],
                 <table class="table table-striped">
                     <tr>
                         <th>{{ age }}</th>
-                        {% for date, cat in day.items() | sort %}
+                        {% for date in dates[age] | sort  %}
                             <th>{{ date | fmt_day_month }}<br>{{ date | fmt_week_day }}</th>
                         {% endfor %}
                     </tr>
+{#                    {% for day in menu %}#}
+{#                    {{ day }}#}
+{#                    {% endfor %}#}
 
-                    {% for category in categories[age]  %}
-                        <tr>
-                            <th><strong>{{ category }}</strong></th>
-                            {% for day in day.keys() | sort %}
-                                {% set menu = descriptions[age][day][category] %}
-                             <td>{{ menu | join(', ')}}</td>
-                            {% endfor %}
-                        </tr>
+
+{#                    {% for category in categories[age]  %}#}
+{#                        <tr>#}
+{#                            <th><strong>{{ category }}</strong></th>#}
+{#                            {% for day in day.keys() | sort %}#}
+{#                                {% set menu = descriptions[age][day][category] %}#}
+{#                             <td>{{ menu | join(', ')}}</td>#}
+{#                            {% endfor %}#}
+{#                        </tr>#}
+{#                    {% endfor %}#}
+                {% for category in categories[age] %}
+                <tr>
+                    <th>{{ category }}</th>
+                    {% for day in menu %}
+                        <td>COMPOSTO LÁCTEO, PÃO TIPO BISNAGUINHA INTEGRAL COM REQUEIJÃO</td>
                     {% endfor %}
+{#                    <td>COMPOSTO LÁCTEO, PÃO TIPO BISNAGUINHA INTEGRAL COM REQUEIJÃO</td>#}
+{#                    <td>COMPOSTO LÁCTEO, PÃO TIPO BISNAGUINHA INTEGRAL COM REQUEIJÃO</td>#}
+{#                    <td>COMPOSTO LÁCTEO, PÃO TIPO BISNAGUINHA INTEGRAL COM REQUEIJÃO</td>#}
+                </tr>
+
+                {% endfor %}
 
             </table>
 
