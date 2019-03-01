@@ -5969,7 +5969,7 @@ table th[class*="span"],
                     </div>
                     <div class="span6 offset7">
                         <p class="period text-right font-weight-bold">{{ resp.week_menu }}</p>
-                        <p class="school-name text-right font-weight-normal">{{ resp.school_name }}</p>
+                        <p class="school-name text-right font-weight-normal">{{ school_name }}</p>
                     </div>
                 </div>
             </div>
@@ -5997,9 +5997,10 @@ table th[class*="span"],
 
             </table>
             <hr>
-            <div>
-                <div id="age_page" align="left"><b>{{ resp.school_name }} - Faixa Etária: {{ age }}</b></div>
-{#                <div id="footer_content" align="right"> Página <pdf:pagenumber> de <pdf:pagecount> </div>#}
+{#                <div id="age_page" align="left"></div>#}
+            <div id="footer_content" align="left">
+                <b>{{ resp.school_name }} - Faixa Etária: {{ age }}</b>
+{#                    Página <pdf:pagenumber> de <pdf:pagecount> #}
             </div>
             <pdf:nextpage/>
         {% endfor %}

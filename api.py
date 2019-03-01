@@ -18,8 +18,8 @@ from utils import (sort_cardapio_por_refeicao,
 app = Flask(__name__)
 
 API_KEY = os.environ.get('API_KEY')
-API_MONGO_URI = 'mongodb://localhost:27017'
-# API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
+# API_MONGO_URI = 'mongodb://localhost:27017'
+API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
 client = MongoClient(API_MONGO_URI)
 db = client['pratoaberto']
 
@@ -198,6 +198,8 @@ def report_pdf(data=None):
 
     inicio = datetime.strptime(request.args.get('data_inicial'), '%Y%M%d')
     fim = datetime.strptime(request.args.get('data_final'), '%Y%m%d')
+    name = request.args.get('nome')
+    print(name)
 
     current_date = '{} a {} de {} de {}'.format(inicio.day, fim.day, utils.translate_date_month(inicio.month), fim.year)
     response['school_name'] = response_menu[0]['tipo_unidade'].replace('_', ' ')
@@ -205,7 +207,7 @@ def report_pdf(data=None):
     response['week_menu'] = current_date
 
     html = render_template('cardapio-pdf.html', resp=response, descriptions=formated_data, dates=date_organizes,
-                           categories=catergory_ordered, menus=menu_organizes)
+                           categories=catergory_ordered, menus=menu_organizes, school_name=name)
     # return html
     pdf = _create_pdf(html)
     pdf_name = pdf.split('/')[-1]
@@ -221,16 +223,6 @@ def format_day_month(value):
     return value
 
 
-@app.template_filter('test')
-def teste_row(value, category):
-    for key, val in value.items():
-        print(val)
-        print('\n')
-        print(category)
-        print('\n\n')
-    return 'COMPOSTO LÁCTEO, PÃO TIPO BISNAGUINHA INTEGRAL COM REQUEIJÃO'
-
-
 @app.template_filter('fmt_week_day')
 def format_day_month(value):
     if value is not None:
@@ -241,10 +233,6 @@ def format_day_month(value):
 
 # Factory PDF
 def _create_pdf(pdf_data):
-    # pdf = BytesIO()
-    # pisa.CreatePDF(src=pdf_data,dest='static/')
-    # return pdf
-    # open output file for writing (truncated binary)
     today = datetime.now()
 
     cdir = os.path.dirname(os.path.realpath(__file__))
@@ -255,7 +243,7 @@ def _create_pdf(pdf_data):
     resultFile = open(filename, "w+b")
 
     # convert HTML to PDF
-    pisaStatus = pisa.CreatePDF(pdf_data, dest=resultFile)  # file handle to recieve result
+    pisa.CreatePDF(pdf_data, dest=resultFile)  # file handle to recieve result
 
     # close output file
     resultFile.close()
@@ -542,5 +530,5 @@ def remove_cardapios():
 
 
 if __name__ == '__main__':
-    app.run(port=7000, debug=True)
-    # app.run()
+    # app.run(port=7000, debug=True)
+    app.run()
