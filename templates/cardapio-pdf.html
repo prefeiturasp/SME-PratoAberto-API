@@ -5978,15 +5978,15 @@ table th[class*="span"],
 
                 <table class="table table-striped">
                     <tr>
-                        <th><p id="age">{{ age }}</p></th>
+                        <th>{{ age }}</th>
                         {% for date in dates[age] | sort  %}
-                            <th><span class="date_menu">{{ date | fmt_day_month }}</span><br>{{ date | fmt_week_day }}</th>
+                            <th>{{ date | fmt_day_month }}<br>{{ date | fmt_week_day }}</th>
                         {% endfor %}
                     </tr>
 
                 {% for category in categories[age] %}
                 <tr>
-                    <th><span class="menu_category">{{ category | upper }}</span></th>
+                    <th>{{ category | upper }}</th>
                     {% for value in menus[age] %}
                         {% set caradapio = value['cardapio'][category] %}
                     <td>{{ caradapio | join(', ') }}</td>

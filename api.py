@@ -18,8 +18,8 @@ from utils import (sort_cardapio_por_refeicao,
 app = Flask(__name__)
 
 API_KEY = os.environ.get('API_KEY')
-# API_MONGO_URI = 'mongodb://localhost:27017'
-API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
+API_MONGO_URI = 'mongodb://localhost:27017'
+# API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
 client = MongoClient(API_MONGO_URI)
 db = client['pratoaberto']
 
@@ -530,5 +530,5 @@ def remove_cardapios():
 
 
 if __name__ == '__main__':
-    # app.run(port=7000, debug=True)
-    app.run()
+    app.run(port=7000, debug=True)
+    # app.run()
