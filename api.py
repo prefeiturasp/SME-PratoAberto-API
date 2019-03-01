@@ -18,8 +18,8 @@ from utils import (sort_cardapio_por_refeicao,
 app = Flask(__name__)
 
 API_KEY = os.environ.get('API_KEY')
-# API_MONGO_URI = 'mongodb://localhost:27017'
-API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
+API_MONGO_URI = 'mongodb://localhost:27017'
+# API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
 client = MongoClient(API_MONGO_URI)
 db = client['pratoaberto']
 
@@ -144,11 +144,6 @@ def get_cardapios(data=None):
     return response
 
 
-@app.route('/test-report-templates')
-def test_report_template():
-    return render_template('teste.html')
-
-
 def _filter_category(descriptions):
     category_dict = {}
 
@@ -211,6 +206,7 @@ def report_pdf(data=None):
 
     html = render_template('cardapio-pdf.html', resp=response, descriptions=formated_data, dates=date_organizes,
                            categories=catergory_ordered, menus=menu_organizes)
+    # return html
     pdf = _create_pdf(html)
     pdf_name = pdf.split('/')[-1]
 
@@ -546,5 +542,5 @@ def remove_cardapios():
 
 
 if __name__ == '__main__':
-    # app.run(port=7000, debug=True)
-    app.run()
+    app.run(port=7000, debug=True)
+    # app.run()

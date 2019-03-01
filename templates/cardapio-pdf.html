@@ -5906,11 +5906,17 @@ table th[class*="span"],
             margin: 2cm;
         }
 
+        @frame footer_frame {           /* Another static Frame */
+            -pdf-frame-content: footer_content;
+            align-content: end;
+        }
+
         .title {
             color: #7D2DB0;
             line-height: 20px;
             font-size: 40px;
             text-transform: uppercase;
+            font-weight: bold;
         }
 
         .period {
@@ -5918,18 +5924,32 @@ table th[class*="span"],
             font-style: normal;
             line-height: 20px;
             font-size: 24px;
-
+            font-weight: bold;
             color: #000000;
+            {#text-align: end;#}
         }
 
         .school-name {
             font-size: 19px;
-
+            {#text-align: end;#}
             color: #000000;
+        }
+        .school-name {
+
         }
 
         .pt-5 {
             padding-top: 25px;
+        }
+        #age {
+            font-size: 16px;
+        }
+        .date_menu {
+            font-size: 20px;
+        }
+        .menu_category {
+            font-size: 14px;
+            text-transform: uppercase;
         }
     </style>
 </head>
@@ -5958,15 +5978,15 @@ table th[class*="span"],
 
                 <table class="table table-striped">
                     <tr>
-                        <th>{{ age }}</th>
+                        <th><p id="age">{{ age }}</p></th>
                         {% for date in dates[age] | sort  %}
-                            <th>{{ date | fmt_day_month }}<br>{{ date | fmt_week_day }}</th>
+                            <th><span class="date_menu">{{ date | fmt_day_month }}</span><br>{{ date | fmt_week_day }}</th>
                         {% endfor %}
                     </tr>
 
                 {% for category in categories[age] %}
                 <tr>
-                    <th>{{ category }}</th>
+                    <th><span class="menu_category">{{ category | upper }}</span></th>
                     {% for value in menus[age] %}
                         {% set caradapio = value['cardapio'][category] %}
                     <td>{{ caradapio | join(', ') }}</td>
@@ -5976,7 +5996,11 @@ table th[class*="span"],
                 {% endfor %}
 
             </table>
-
+            <hr>
+            <div>
+                <div id="age_page" align="left"><b>{{ resp.school_name }} - Faixa Etária: {{ age }}</b></div>
+{#                <div id="footer_content" align="right"> Página <pdf:pagenumber> de <pdf:pagecount> </div>#}
+            </div>
             <pdf:nextpage/>
         {% endfor %}
         </div>
