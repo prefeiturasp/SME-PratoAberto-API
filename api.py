@@ -18,8 +18,8 @@ from utils import (sort_cardapio_por_refeicao,
 app = Flask(__name__)
 
 API_KEY = os.environ.get('API_KEY')
-API_MONGO_URI = 'mongodb://localhost:27017'
-# API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
+# API_MONGO_URI = 'mongodb://localhost:27017'
+API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
 client = MongoClient(API_MONGO_URI)
 db = client['pratoaberto']
 
@@ -158,34 +158,6 @@ def _filter_category(descriptions):
     return category_dict
 
 
-@app.route('/report')
-@app.route('/report/<data>')
-def report_menu(data=None):
-    response_menu = __find_menu_json(request, data)
-    response = {}
-    all_menu_information = __create_menu_list(response_menu)
-
-    _reorganizes_data_menu(response_menu)
-
-    inicio = datetime.strptime(request.args.get('data_inicial'), '%Y%M%d')
-    fim = datetime.strptime(request.args.get('data_final'), '%Y%m%d')
-
-    current_date = '{} a {} de {} de {}'.format(inicio.day, fim.day, utils.translate_date_month(inicio.month), fim.year)
-    response['school_name'] = response_menu[0]['tipo_unidade'].replace('_', ' ')
-    response['response'] = response_menu
-    response['week_menu'] = current_date
-
-    category_filtered = _filter_category(all_menu_information)
-
-    html = render_template('report.html', menu=response, descriptions=all_menu_information,
-                           categories=category_filtered)
-    return html
-    # pdf = _create_pdf(html)
-    # pdf_name = pdf.split('/')[-1]
-    #
-    # return send_file(pdf, mimetype=pdf_name)
-
-
 def _reorganizes_date(menu_dict):
     date_dict = {}
 
@@ -207,6 +179,17 @@ def _reorganizes_category(menu_dict):
     return category_dict
 
 
+def _reorganizes_menu_week(menu_dict):
+    age_dict = {}
+    for age, values in menu_dict.items():
+        age_dict[age] = []
+        values = sorted(values, key=lambda v: v['data'])
+        for val in values:
+            age_dict[age].append(val)
+
+    return age_dict
+
+
 @app.route('/cardapio-pdf')
 @app.route('/cardapio-pdf/<data>')
 def report_pdf(data=None):
@@ -216,11 +199,10 @@ def report_pdf(data=None):
     formated_data = _reorganizes_data_menu(response_menu)
     date_organizes = _reorganizes_date(formated_data)
     catergory_ordered = _reorganizes_category(formated_data)
+    menu_organizes = _reorganizes_menu_week(formated_data)
 
     inicio = datetime.strptime(request.args.get('data_inicial'), '%Y%M%d')
     fim = datetime.strptime(request.args.get('data_final'), '%Y%m%d')
-
-
 
     current_date = '{} a {} de {} de {}'.format(inicio.day, fim.day, utils.translate_date_month(inicio.month), fim.year)
     response['school_name'] = response_menu[0]['tipo_unidade'].replace('_', ' ')
@@ -228,12 +210,11 @@ def report_pdf(data=None):
     response['week_menu'] = current_date
 
     html = render_template('cardapio-pdf.html', resp=response, descriptions=formated_data, dates=date_organizes,
-                           categories=catergory_ordered)
-    return html
-    # pdf = _create_pdf(html)
-    # pdf_name = pdf.split('/')[-1]
-    #
-    # return send_file(pdf, mimetype=pdf_name)
+                           categories=catergory_ordered, menus=menu_organizes)
+    pdf = _create_pdf(html)
+    pdf_name = pdf.split('/')[-1]
+
+    return send_file(pdf, mimetype=pdf_name)
 
 
 @app.template_filter('fmt_day_month')
@@ -242,6 +223,16 @@ def format_day_month(value):
         # current_date = datetime.strptime(value, '%Y%m%d')
         return datetime.strftime(value, '%d/%m')
     return value
+
+
+@app.template_filter('test')
+def teste_row(value, category):
+    for key, val in value.items():
+        print(val)
+        print('\n')
+        print(category)
+        print('\n\n')
+    return 'COMPOSTO LÁCTEO, PÃO TIPO BISNAGUINHA INTEGRAL COM REQUEIJÃO'
 
 
 @app.template_filter('fmt_week_day')
@@ -276,24 +267,6 @@ def _create_pdf(pdf_data):
     return filename
 
 
-# Reorganizes datas from menu week
-
-def __create_menu_list(data_dict):
-    date_from_week = __assemble_list_date_week(data_dict)
-    date_from_age = __assemble_list_age(data_dict)
-
-    date_with_menu = {}
-    date_with_age = {}
-    for data in data_dict:
-        for age in date_from_age:
-            for day in date_from_week:
-                if age in data['idade'] and day in data['data']:
-                    date_with_menu[day] = data['cardapio']
-                    date_with_age[age] = date_with_menu
-
-    return date_with_age
-
-
 def _reorganizes_data_menu(menu_dict):
     age_list = []
     age_dict = {}
@@ -320,26 +293,6 @@ def _sepate_for_age(key_dict, data_dict):
 
 def _converter_to_date(str_date):
     return datetime.strptime(str_date, '%Y%m%d')
-
-
-def __assemble_list_date_week(data_dict):
-    date_week_list = []
-
-    for day in data_dict:
-        if day['data'] not in date_week_list:
-            date_week_list.append(day['data'])
-
-    return sorted(date_week_list)
-
-
-def __assemble_list_age(data_dict):
-    age_menu_list = []
-
-    for age in data_dict:
-        if age['idade'] not in age_menu_list:
-            age_menu_list.append(age['idade'])
-
-    return age_menu_list
 
 
 def __find_menu_json(request_data, data):
@@ -593,5 +546,5 @@ def remove_cardapios():
 
 
 if __name__ == '__main__':
-    app.run(port=7000, debug=True)
-    # app.run()
+    # app.run(port=7000, debug=True)
+    app.run()
