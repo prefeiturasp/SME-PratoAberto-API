@@ -531,6 +531,26 @@ def remove_cardapios():
     return response
 
 
+@app.route('/editor/editar_notas', methods=['GET', 'POST'])
+def editar_notas():
+    if request.method == 'GET':
+        notas = db.notas.find_one({'_id': 1})
+        response = app.response_class(
+            response=json_util.dumps(notas),
+            status=200,
+            mimetype='application/json'
+        )
+    if request.method == 'POST':
+        data = json.loads(request.get_data())
+        db.notas.update_one({"_id": 1}, {"$set": data})
+        response = app.response_class(
+            response='editor atualizado com sucesso',
+            status=200,
+            mimetype='application/json'
+        )
+    return response
+
+
 if __name__ == '__main__':
     # app.run(port=7000, debug=True)
     app.run()
