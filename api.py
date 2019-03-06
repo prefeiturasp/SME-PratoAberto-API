@@ -54,14 +54,16 @@ def get_lista_escolas():
 
 @app.route('/escola/<int:id_escola>')
 def get_detalhe_escola(id_escola):
+    raw = request.args.get('raw', False)
     query = {'_id': id_escola, 'status': 'ativo'}
     fields = {'_id': False, 'status': False}
     escola = db.escolas.find_one(query, fields)
     if escola:
-        if 'idades' in escola:
-            escola['idades'] = [idades.get(x, x) for x in escola['idades']]
-        if 'refeicoes' in escola:
-            escola['refeicoes'] = [refeicoes.get(x, x) for x in escola['refeicoes']]
+        if not raw:
+            if 'idades' in escola:
+                escola['idades'] = [idades.get(x, x) for x in escola['idades']]
+            if 'refeicoes' in escola:
+                escola['refeicoes'] = [refeicoes.get(x, x) for x in escola['refeicoes']]
         response = app.response_class(
             response=json_util.dumps(escola),
             status=200,
