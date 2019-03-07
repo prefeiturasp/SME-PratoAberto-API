@@ -2,6 +2,7 @@
 import json
 import math
 import os
+import time
 from datetime import datetime
 
 from bson import json_util, ObjectId
@@ -187,6 +188,16 @@ def _reorganizes_menu_week(menu_dict):
     return age_dict
 
 
+def _get_current_date(inicio, fim):
+    if inicio.month == fim.month:
+        month = '{} a {} de {} de {}'.format(inicio.day, fim.day, utils.translate_date_month(inicio.month), inicio.year)
+    else:
+        month = '{} de {} a {} de {} de {}'.format(inicio.day, utils.translate_date_month(inicio.month), fim.day,
+                                                   utils.translate_date_month(fim.month), inicio.year)
+
+    return month
+
+
 @app.route('/cardapio-pdf')
 @app.route('/cardapio-pdf/<data>')
 def report_pdf(data=None):
@@ -198,18 +209,20 @@ def report_pdf(data=None):
     catergory_ordered = _reorganizes_category(formated_data)
     menu_organizes = _reorganizes_menu_week(formated_data)
 
-    inicio = datetime.strptime(request.args.get('data_inicial'), '%Y%M%d')
+    inicio = datetime.strptime(request.args.get('data_inicial'), '%Y%m%d')
     fim = datetime.strptime(request.args.get('data_final'), '%Y%m%d')
-    name = request.args.get('nome')
-    print(name)
 
-    current_date = '{} a {} de {} de {}'.format(inicio.day, fim.day, utils.translate_date_month(inicio.month), fim.year)
-    response['school_name'] = response_menu[0]['tipo_unidade'].replace('_', ' ')
+    current_date = _get_current_date(inicio, fim)
+    response['school_name'] = request.args.get('nome')
     response['response'] = response_menu
     response['week_menu'] = current_date
 
+    cpath = os.path.realpath(os.path.dirname(__file__)) + '/static/'
+
+    wipe_unused(cpath, 5)
+
     html = render_template('cardapio-pdf.html', resp=response, descriptions=formated_data, dates=date_organizes,
-                           categories=catergory_ordered, menus=menu_organizes, school_name=name)
+                           categories=catergory_ordered, menus=menu_organizes)
     # return html
     pdf = _create_pdf(html)
     pdf_name = pdf.split('/')[-1]
@@ -279,6 +292,23 @@ def _sepate_for_age(key_dict, data_dict):
 
 def _converter_to_date(str_date):
     return datetime.strptime(str_date, '%Y%m%d')
+
+
+def wipe_unused(basedir, limit):
+    """
+    Remove files in *basedir* not accessed within *limit* minutes
+
+    :param basedir: directory to clean
+    :param limit: minutes
+    """
+    atime_limit = time.time() - limit
+    count = 0
+    for filename in os.listdir(basedir):
+        path = os.path.join(basedir, filename)
+        if os.path.getatime(path) < atime_limit:
+            os.remove(path)
+            count += 1
+    print("Removed {} files.".format(count))
 
 
 def __find_menu_json(request_data, data):
