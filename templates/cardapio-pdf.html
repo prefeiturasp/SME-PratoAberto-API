@@ -5987,8 +5987,9 @@ table th[class*="span"],
                     <tr>
                         <th>{{ category | upper }}</th>
                         {% for value in menus[age] %}
-                            {% set caradapio = value['cardapio'][category] %}
-                            <td>{{ caradapio | join(', ') }}</td>
+                            {% set cardapio = value['cardapio'][category] %}
+                            {% set cardapio = cardapio | join(', ')%}
+                            <td>{{ cardapio | replace(';','\n') }}</td>
                         {% endfor %}
                     </tr>
 

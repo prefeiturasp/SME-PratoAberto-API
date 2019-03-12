@@ -6,7 +6,7 @@ import time
 from datetime import datetime
 
 from bson import json_util, ObjectId
-from flask import Flask, request, render_template, send_file
+from flask import Flask, request, render_template, send_file, Response
 from flask_restplus import Api, Resource
 from pymongo import MongoClient
 from xhtml2pdf import pisa
@@ -241,7 +241,7 @@ class ReportPdf(Resource):
 
         html = render_template('cardapio-pdf.html', resp=response, descriptions=formated_data, dates=date_organizes,
                                categories=catergory_ordered, menus=menu_organizes)
-        # return html
+        # return Response(html, mimetype="text/html")
         pdf = _create_pdf(html)
         pdf_name = pdf.split('/')[-1]
 
