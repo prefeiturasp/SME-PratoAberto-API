@@ -4,6 +4,7 @@ import math
 import os
 import time
 from datetime import datetime
+from dateutil.parser import parse
 
 from bson import json_util, ObjectId
 from flask import Flask, request, render_template, send_file, Response
@@ -304,8 +305,17 @@ def _reorganizes_data_menu(menu_dict):
 def _sepate_for_age(key_dict, data_dict):
     for value in data_dict:
         if value['idade'] in key_dict.keys():
-            key_dict[value['idade']].append({'data': _converter_to_date(value['data']), 'cardapio': value['cardapio']})
+            key_dict[value['idade']].append({'data': _converter_to_date(value['data']), 'cardapio': value['cardapio'], 'publicacao' : _set_datetime(value['data_publicacao'])})
     return key_dict
+
+
+def _set_datetime(str_date):
+    try:
+        ndate = parse(str_date)
+        return ndate.strftime('%d/%m/%Y - %H:%M:%S')
+    except Exception as e:
+        print(str(e))
+        return str_date
 
 
 def _converter_to_date(str_date):
