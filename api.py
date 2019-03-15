@@ -420,13 +420,13 @@ class CardapiosEditor(Resource):
             query['status'] = {'$in': request.args.getlist('status')}
         else:
             query['status'] = 'PUBLICADO'
-        if request.args.get('agrupamento'):
+        if request.args.get('agrupamento') and request.args.get('agrupamento') != 'TODOS':
             query['agrupamento'] = request.args['agrupamento']
-        if request.args.get('tipo_atendimento'):
+        if request.args.get('tipo_atendimento') and request.args.get('tipo_atendimento') != 'TODOS':
             query['tipo_atendimento'] = request.args['tipo_atendimento']
-        if request.args.get('tipo_unidade'):
+        if request.args.get('tipo_unidade') and request.args.get('tipo_unidade') != 'TODOS':
             query['tipo_unidade'] = request.args['tipo_unidade']
-        if request.args.get('idade'):
+        if request.args.get('idade') and request.args.get('idade') != 'TODOS':
             query['idade'] = request.args['idade']
         data = {}
         if request.args.get('data_inicial'):
