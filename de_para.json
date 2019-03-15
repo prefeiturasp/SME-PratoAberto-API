@@ -15,7 +15,8 @@
 		"FPJ - FILHOS PRO JOVEM": "Pro Jovem (filhos)",
 		"AP - ALMOÇO PROFESSOR": "Almoço - Professor",
 		"JP - JANTAR PROFESSOR": "Jantar - Professor",
-		"AA - ALMOCO ADULTO": "Refeição"
+		"AA - ALMOCO ADULTO": "Refeição",
+		"SR - SEM REFEICAO" : "Sem Refeição"
 	},
 	"idades": {
 		"A - 0 A 1 MES": "0 a 1 mês",

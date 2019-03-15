@@ -382,6 +382,7 @@ def find_menu_json(request_data, data):
                            'O - 8 A 11 MESES PARCIAL', 'Y - 1A -1A E 11MES PARCIAL', 'P - 2 A 3 ANOS PARCIAL',
                            'Q - 4 A 6 ANOS PARCIAL', 'H - ADULTO', 'Z - UNIDADES SEM FAIXA', 'S - FILHOS PRO JOVEM',
                            'V - PROFESSOR', 'U - PROFESSOR JANTAR CEI']
+
     for c in cardapios:
         _cardapios.append(c)
     for i in definicao_ordenacao:
@@ -389,16 +390,21 @@ def find_menu_json(request_data, data):
             if i == c['idade']:
                 cardapio_ordenado.append(c)
                 continue
+
     for c in cardapio_ordenado:
         try:
             c['idade'] = idades[c['idade']]
             c['cardapio'] = {refeicoes[k]: v for k, v in c['cardapio'].items()}
         except KeyError as e:
             app.logger.debug('erro de chave: {} objeto {}'.format(str(e), c))
+
     for c in cardapio_ordenado:
         c['cardapio'] = sort_cardapio_por_refeicao(c['cardapio'])
+
+
     if query['tipo_unidade'] == 'SME_CONVÊNIO':
         cardapio_ordenado = remove_refeicao_duplicada_sme_conv(cardapio_ordenado)
+
     return cardapio_ordenado
 
 
