@@ -249,6 +249,7 @@ class ReportPdf(Resource):
         return send_file(pdf, mimetype=pdf_name)
 
 
+
 @app.template_filter('fmt_day_month')
 def format_day_month(value):
     if value is not None:
