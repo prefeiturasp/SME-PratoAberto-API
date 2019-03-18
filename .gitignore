@@ -106,3 +106,4 @@ ENV/
 
 #ide
 .idea/
+static/*.pdf
