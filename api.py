@@ -155,6 +155,7 @@ class Cardapios(Resource):
     def get(self, data=None):
         """retorna os cardápios relacionados a um período"""
         cardapio_ordenado = find_menu_json(request, data)
+
         response = app.response_class(
             response=json_util.dumps(cardapio_ordenado),
             status=200,
@@ -204,6 +205,29 @@ def _reorganizes_menu_week(menu_dict):
     return age_dict
 
 
+def _get_school_by_name(school_name):
+    new_list_category = []
+    school = db.escolas.find({"nome": school_name})
+
+    for category in school[0]['refeicoes']:
+        if refeicoes[category]:
+            new_list_category.append(refeicoes[category])
+
+    return new_list_category
+
+
+def filter_by_menu_school(menu_organizes, menu_type_by_school):
+    new_dict_menu = {}
+    for keys, values in menu_organizes.items():
+        new_dict_menu[keys] = []
+        for val in values:
+            for v in val['cardapio']:
+                if v in menu_type_by_school:
+                    new_dict_menu[keys].append(val)
+
+    return new_dict_menu
+
+
 @api.route('/cardapio-pdf/<data>')
 @api.route('/cardapio-pdf')
 @api.doc(params={'data': 'data de um cardápio'})
@@ -223,6 +247,8 @@ class ReportPdf(Resource):
         response_menu = find_menu_json(request, data)
         response = {}
 
+        menu_type_by_school = _get_school_by_name(request.args.get('nome'))
+
         formated_data = _reorganizes_data_menu(response_menu)
         date_organizes = _reorganizes_date(formated_data)
         catergory_ordered = _reorganizes_category(formated_data)
@@ -240,6 +266,8 @@ class ReportPdf(Resource):
 
         wipe_unused(cpath, 5)
 
+        # teste = filter_by_menu_school(menu_organizes, menu_type_by_school)
+
         html = render_template('cardapio-pdf.html', resp=response, descriptions=formated_data, dates=date_organizes,
                                categories=catergory_ordered, menus=menu_organizes)
         # return Response(html, mimetype="text/html")
@@ -247,7 +275,6 @@ class ReportPdf(Resource):
         pdf_name = pdf.split('/')[-1]
 
         return send_file(pdf, mimetype=pdf_name)
-
 
 
 @app.template_filter('fmt_day_month')
@@ -306,7 +333,8 @@ def _reorganizes_data_menu(menu_dict):
 def _sepate_for_age(key_dict, data_dict):
     for value in data_dict:
         if value['idade'] in key_dict.keys():
-            key_dict[value['idade']].append({'data': _converter_to_date(value['data']), 'cardapio': value['cardapio'], 'publicacao' : _set_datetime(value['data_publicacao'])})
+            key_dict[value['idade']].append({'data': _converter_to_date(value['data']), 'cardapio': value['cardapio'],
+                                             'publicacao': _set_datetime(value['data_publicacao'])})
     return key_dict
 
 
@@ -401,7 +429,6 @@ def find_menu_json(request_data, data):
 
     for c in cardapio_ordenado:
         c['cardapio'] = sort_cardapio_por_refeicao(c['cardapio'])
-
 
     if query['tipo_unidade'] == 'SME_CONVÊNIO':
         cardapio_ordenado = remove_refeicao_duplicada_sme_conv(cardapio_ordenado)
