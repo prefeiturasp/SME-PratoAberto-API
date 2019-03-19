@@ -216,16 +216,15 @@ def _get_school_by_name(school_name):
     return new_list_category
 
 
-def filter_by_menu_school(menu_organizes, menu_type_by_school):
-    new_dict_menu = {}
-    for keys, values in menu_organizes.items():
-        new_dict_menu[keys] = []
-        for val in values:
-            for v in val['cardapio']:
-                if v in menu_type_by_school:
-                    new_dict_menu[keys].append(val)
+def filter_by_menu_school(categories, menu_type_by_school):
+    new_dict_categories = {}
+    for key, values in categories.items():
+        new_dict_categories[key] = []
+        for category in values:
+            if category in menu_type_by_school:
+                new_dict_categories[key].append(category)
 
-    return new_dict_menu
+    return new_dict_categories
 
 
 @api.route('/cardapio-pdf/<data>')
@@ -254,6 +253,8 @@ class ReportPdf(Resource):
         catergory_ordered = _reorganizes_category(formated_data)
         menu_organizes = _reorganizes_menu_week(formated_data)
 
+        filtered_category_ordered = filter_by_menu_school(catergory_ordered, menu_type_by_school)
+
         inicio = datetime.strptime(request.args.get('data_inicial'), '%Y%m%d')
         fim = datetime.strptime(request.args.get('data_final'), '%Y%m%d')
 
@@ -266,11 +267,10 @@ class ReportPdf(Resource):
 
         wipe_unused(cpath, 5)
 
-        # teste = filter_by_menu_school(menu_organizes, menu_type_by_school)
-
         html = render_template('cardapio-pdf.html', resp=response, descriptions=formated_data, dates=date_organizes,
-                               categories=catergory_ordered, menus=menu_organizes)
+                               categories=filtered_category_ordered, menus=menu_organizes)
         # return Response(html, mimetype="text/html")
+
         pdf = _create_pdf(html)
         pdf_name = pdf.split('/')[-1]
 
