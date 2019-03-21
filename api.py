@@ -153,6 +153,10 @@ class CardapioEscola(Resource):
 @api.doc(params={'data': 'data de um cardápio'})
 class Cardapios(Resource):
     def get(self, data=None):
+        # if data:
+        #     print(data)
+        #     menu_type_by_school = _get_school_by_name(request.args.get('nome'))
+
         """retorna os cardápios relacionados a um período"""
         cardapio_ordenado = find_menu_json(request, data)
 
@@ -411,9 +415,14 @@ def find_menu_json(request_data, data):
                            'O - 8 A 11 MESES PARCIAL', 'Y - 1A -1A E 11MES PARCIAL', 'P - 2 A 3 ANOS PARCIAL',
                            'Q - 4 A 6 ANOS PARCIAL', 'H - ADULTO', 'Z - UNIDADES SEM FAIXA', 'S - FILHOS PRO JOVEM',
                            'V - PROFESSOR', 'U - PROFESSOR JANTAR CEI']
+    category_by_school = None
+
+    if request_data.args.get('nome'):
+        category_by_school = _get_school_by_name(request_data.args.get('nome'))
 
     for c in cardapios:
         _cardapios.append(c)
+
     for i in definicao_ordenacao:
         for c in _cardapios:
             if i == c['idade']:
@@ -424,6 +433,7 @@ def find_menu_json(request_data, data):
         try:
             c['idade'] = idades[c['idade']]
             c['cardapio'] = {refeicoes[k]: v for k, v in c['cardapio'].items()}
+            c['cardapio'] = {k: v for k, v in c['cardapio'].items() if k in category_by_school}
         except KeyError as e:
             app.logger.debug('erro de chave: {} objeto {}'.format(str(e), c))
 
