@@ -153,8 +153,10 @@ class CardapioEscola(Resource):
 @api.doc(params={'data': 'data de um cardápio'})
 class Cardapios(Resource):
     def get(self, data=None):
+
         """retorna os cardápios relacionados a um período"""
         cardapio_ordenado = find_menu_json(request, data)
+
         response = app.response_class(
             response=json_util.dumps(cardapio_ordenado),
             status=200,
@@ -204,6 +206,28 @@ def _reorganizes_menu_week(menu_dict):
     return age_dict
 
 
+def _get_school_by_name(school_name):
+    new_list_category = []
+    school = db.escolas.find({"nome": school_name})
+
+    for category in school[0]['refeicoes']:
+        if refeicoes[category]:
+            new_list_category.append(refeicoes[category])
+
+    return new_list_category
+
+
+def filter_by_menu_school(categories, menu_type_by_school):
+    new_dict_categories = {}
+    for key, values in categories.items():
+        new_dict_categories[key] = []
+        for category in values:
+            if category in menu_type_by_school:
+                new_dict_categories[key].append(category)
+
+    return new_dict_categories
+
+
 @api.route('/cardapio-pdf/<data>')
 @api.route('/cardapio-pdf')
 @api.doc(params={'data': 'data de um cardápio'})
@@ -223,10 +247,14 @@ class ReportPdf(Resource):
         response_menu = find_menu_json(request, data)
         response = {}
 
+        menu_type_by_school = _get_school_by_name(request.args.get('nome'))
+
         formated_data = _reorganizes_data_menu(response_menu)
         date_organizes = _reorganizes_date(formated_data)
         catergory_ordered = _reorganizes_category(formated_data)
         menu_organizes = _reorganizes_menu_week(formated_data)
+
+        filtered_category_ordered = filter_by_menu_school(catergory_ordered, menu_type_by_school)
 
         inicio = datetime.strptime(request.args.get('data_inicial'), '%Y%m%d')
         fim = datetime.strptime(request.args.get('data_final'), '%Y%m%d')
@@ -241,8 +269,9 @@ class ReportPdf(Resource):
         wipe_unused(cpath, 5)
 
         html = render_template('cardapio-pdf.html', resp=response, descriptions=formated_data, dates=date_organizes,
-                               categories=catergory_ordered, menus=menu_organizes)
+                               categories=filtered_category_ordered, menus=menu_organizes)
         # return Response(html, mimetype="text/html")
+
         pdf = _create_pdf(html)
         pdf_name = pdf.split('/')[-1]
 
@@ -305,7 +334,8 @@ def _reorganizes_data_menu(menu_dict):
 def _sepate_for_age(key_dict, data_dict):
     for value in data_dict:
         if value['idade'] in key_dict.keys():
-            key_dict[value['idade']].append({'data': _converter_to_date(value['data']), 'cardapio': value['cardapio'], 'publicacao' : _set_datetime(value['data_publicacao'])})
+            key_dict[value['idade']].append({'data': _converter_to_date(value['data']), 'cardapio': value['cardapio'],
+                                             'publicacao': _set_datetime(value['data_publicacao'])})
     return key_dict
 
 
@@ -382,23 +412,31 @@ def find_menu_json(request_data, data):
                            'O - 8 A 11 MESES PARCIAL', 'Y - 1A -1A E 11MES PARCIAL', 'P - 2 A 3 ANOS PARCIAL',
                            'Q - 4 A 6 ANOS PARCIAL', 'H - ADULTO', 'Z - UNIDADES SEM FAIXA', 'S - FILHOS PRO JOVEM',
                            'V - PROFESSOR', 'U - PROFESSOR JANTAR CEI']
+    category_by_school = None
+
+    if request_data.args.get('nome'):
+        category_by_school = _get_school_by_name(request_data.args.get('nome'))
+
     for c in cardapios:
         _cardapios.append(c)
+
     for i in definicao_ordenacao:
         for c in _cardapios:
             if i == c['idade']:
                 cardapio_ordenado.append(c)
                 continue
+
     for c in cardapio_ordenado:
         try:
             c['idade'] = idades[c['idade']]
             c['cardapio'] = {refeicoes[k]: v for k, v in c['cardapio'].items()}
+            c['cardapio'] = {k: v for k, v in c['cardapio'].items() if k in category_by_school}
         except KeyError as e:
             app.logger.debug('erro de chave: {} objeto {}'.format(str(e), c))
+
     for c in cardapio_ordenado:
         c['cardapio'] = sort_cardapio_por_refeicao(c['cardapio'])
-    if query['tipo_unidade'] == 'SME_CONVÊNIO':
-        cardapio_ordenado = remove_refeicao_duplicada_sme_conv(cardapio_ordenado)
+
     return cardapio_ordenado
 
 

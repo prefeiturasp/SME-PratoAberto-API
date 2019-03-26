@@ -8,7 +8,7 @@ def sort_cardapio_por_refeicao(refeicoes_desord):
                        'Merenda Seca',
                        'Merenda Inicial', 'Refeição - Professor', 'Pro Jovem (filhos)', 'Almoço - Professor',
                        'Jantar - Professor',
-                       'Refeição']
+                       'Refeição','Sem Refeição']
     ordenado = collections.OrderedDict()
     for ordem_refeicao in ordens_refeicao:
         for _ in refeicoes_desord:

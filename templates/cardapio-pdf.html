@@ -5979,7 +5979,9 @@ table th[class*="span"],
                 <tr>
                     <th>{{ age }}</th>
                     {% for date in dates[age] | sort %}
-                        <th>{{ date | fmt_day_month }}<br>{{ date | fmt_week_day }}</th>
+                        {% if data is not none %}
+                            <th>{{ date | fmt_day_month }}<br>{{ date | fmt_week_day }}</th>
+                        {% endif %}
                     {% endfor %}
                 </tr>
 
@@ -5988,10 +5990,12 @@ table th[class*="span"],
                 {% for category in categories[age] %}
                     <tr>
                         <th>{{ category | upper }}</th>
-                        {% for value in menus[age] %}
+                        {% for value in menus[age] if value['cardapio'][category] %}
                             {% set cardapio = value['cardapio'][category] %}
                             {% set cardapio = cardapio | join(', ')%}
+
                             <td>{{ cardapio | replace(';','\n') }}</td>
+
                         {% endfor %}
                     </tr>
 
