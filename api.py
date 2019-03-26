@@ -153,9 +153,6 @@ class CardapioEscola(Resource):
 @api.doc(params={'data': 'data de um cardápio'})
 class Cardapios(Resource):
     def get(self, data=None):
-        # if data:
-        #     print(data)
-        #     menu_type_by_school = _get_school_by_name(request.args.get('nome'))
 
         """retorna os cardápios relacionados a um período"""
         cardapio_ordenado = find_menu_json(request, data)
