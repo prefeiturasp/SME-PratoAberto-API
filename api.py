@@ -437,9 +437,6 @@ def find_menu_json(request_data, data):
     for c in cardapio_ordenado:
         c['cardapio'] = sort_cardapio_por_refeicao(c['cardapio'])
 
-    if query['tipo_unidade'] == 'SME_CONVÊNIO':
-        cardapio_ordenado = remove_refeicao_duplicada_sme_conv(cardapio_ordenado)
-
     return cardapio_ordenado
 
 
