@@ -19,8 +19,10 @@ def sort_cardapio_por_refeicao(refeicoes_desord):
 
 def remove_refeicao_duplicada_sme_conv(refeicoes):
     retval = []
+    refeicoes = sorted(refeicoes, key=lambda r: len(r['cardapio']), reverse=True)
+    len_todas_as_idades = (list(refeicoes[0]['cardapio'])).__len__()
     for refeicao in refeicoes:
-        if refeicao['idade'] != 'Toda Idade':  # remove "toda idade" e deixa somente "todas as idades"
+        if len_todas_as_idades == 1 or (len_todas_as_idades == 2 and refeicao['idade'] != 'Toda Idade'):
             retval.append(refeicao)
     return retval
 

@@ -15,7 +15,8 @@ from xhtml2pdf import pisa
 import utils
 from utils import (sort_cardapio_por_refeicao,
                    extract_digits,
-                   extract_chars)
+                   extract_chars,
+                   remove_refeicao_duplicada_sme_conv)
 
 app = Flask(__name__)
 api = Api(app, default='API do Prato Aberto', default_label='endpoints para se comunicar com a API do Prato Aberto')
@@ -434,6 +435,9 @@ def find_menu_json(request_data, data):
 
     for c in cardapio_ordenado:
         c['cardapio'] = sort_cardapio_por_refeicao(c['cardapio'])
+
+    if query['tipo_unidade'] == 'SME_CONVÊNIO' and len(cardapio_ordenado):
+        cardapio_ordenado = remove_refeicao_duplicada_sme_conv(cardapio_ordenado)
 
     return cardapio_ordenado
 
