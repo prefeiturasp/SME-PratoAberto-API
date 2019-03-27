@@ -4,17 +4,16 @@ import math
 import os
 import time
 from datetime import datetime
-from dateutil.parser import parse
 
 from bson import json_util, ObjectId
-from flask import Flask, request, render_template, send_file, Response
+from dateutil.parser import parse
+from flask import Flask, request, render_template, send_file
 from flask_restplus import Api, Resource
 from pymongo import MongoClient
 from xhtml2pdf import pisa
-import utils
 
+import utils
 from utils import (sort_cardapio_por_refeicao,
-                   remove_refeicao_duplicada_sme_conv,
                    extract_digits,
                    extract_chars)
 
@@ -22,7 +21,6 @@ app = Flask(__name__)
 api = Api(app, default='API do Prato Aberto', default_label='endpoints para se comunicar com a API do Prato Aberto')
 
 API_KEY = os.environ.get('API_KEY')
-# API_MONGO_URI = 'mongodb://localhost:27017'
 API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
 client = MongoClient(API_MONGO_URI)
 db = client['pratoaberto']
@@ -153,7 +151,6 @@ class CardapioEscola(Resource):
 @api.doc(params={'data': 'data de um cardápio'})
 class Cardapios(Resource):
     def get(self, data=None):
-
         """retorna os cardápios relacionados a um período"""
         cardapio_ordenado = find_menu_json(request, data)
 
@@ -430,7 +427,8 @@ def find_menu_json(request_data, data):
         try:
             c['idade'] = idades[c['idade']]
             c['cardapio'] = {refeicoes[k]: v for k, v in c['cardapio'].items()}
-            c['cardapio'] = {k: v for k, v in c['cardapio'].items() if k in category_by_school}
+            if category_by_school:
+                c['cardapio'] = {k: v for k, v in c['cardapio'].items() if k in category_by_school}
         except KeyError as e:
             app.logger.debug('erro de chave: {} objeto {}'.format(str(e), c))
 
@@ -634,5 +632,4 @@ class EditarNotas(Resource):
 
 
 if __name__ == '__main__':
-    # app.run(port=7000, debug=True)
     app.run()

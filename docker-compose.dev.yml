@@ -8,8 +8,6 @@ services:
     command: gunicorn api:app --timeout 120 --log-level DEBUG -w 1 -b 0.0.0.0:8000
     depends_on:
       - db
-    volumes:
-      - .:/code
     links:
       - db
     restart: on-failure:5
