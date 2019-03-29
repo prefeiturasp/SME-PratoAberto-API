@@ -5,7 +5,7 @@ def sort_cardapio_por_refeicao(refeicoes_desord):
     ordens_refeicao = ['Desjejum', 'Colação', 'Almoço', 'Lanche', 'Refeição da Tarde',
                        'Lanche - Permanência de 4 ou 8 horas',
                        'Lanche - Permanência de 5 ou 6 horas', 'Lanche - Permanência de 5 ou 6 horas', 'Refeição',
-                       'Merenda Seca',
+                       'Merenda Seca', 'Merenda Especial Seca',
                        'Merenda Inicial', 'Refeição - Professor', 'Pro Jovem (filhos)', 'Almoço - Professor',
                        'Jantar - Professor',
                        'Refeição','Sem Refeição']

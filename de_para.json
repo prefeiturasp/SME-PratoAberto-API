@@ -16,7 +16,8 @@
 		"AP - ALMOÇO PROFESSOR": "Almoço - Professor",
 		"JP - JANTAR PROFESSOR": "Jantar - Professor",
 		"AA - ALMOCO ADULTO": "Refeição",
-		"SR - SEM REFEICAO" : "Sem Refeição"
+		"SR - SEM REFEICAO" : "Sem Refeição",
+		"MES - MERENDA ESPEC_SECA": "Merenda Especial Seca"
 	},
 	"idades": {
 		"A - 0 A 1 MES": "0 a 1 mês",
