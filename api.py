@@ -242,7 +242,7 @@ class ReportPdf(Resource):
 
     def get(self, data=None):
         """retorna um PDF para impressão de um cardápio em um período"""
-        response_menu = find_menu_json(request, data)
+        response_menu = adjust_ages(find_menu_json(request, data))
         response = {}
 
         menu_type_by_school = _get_school_by_name(request.args.get('nome'))
@@ -310,6 +310,23 @@ def _create_pdf(pdf_data):
     resultFile.close()
 
     return filename
+
+
+def adjust_ages(menu_dict):
+    if next((True for item in menu_dict if item['idade'] == 'Toda Idade'), False) and \
+            next((True for item in menu_dict if item['idade'] == 'Todas as idades'), False):
+        menu_dict_ordered = sorted(menu_dict, key=lambda kv: (kv['data'], kv['idade']))
+        for value in menu_dict_ordered:
+            if value['idade'] == 'Toda Idade':
+                cardapio = dict(value['cardapio'])
+            elif value['idade'] == 'Todas as idades':
+                value['cardapio'].update(cardapio)
+        just_all_ages = []
+        for value in menu_dict_ordered:
+            if value['idade'] == 'Todas as idades':
+                just_all_ages.append(value)
+        return just_all_ages
+    return menu_dict
 
 
 def _reorganizes_data_menu(menu_dict):
