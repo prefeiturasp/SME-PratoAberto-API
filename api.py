@@ -207,7 +207,6 @@ def _reorganizes_menu_week(menu_dict):
 def _get_school_by_name(school_name):
     new_list_category = []
     school = db.escolas.find({"nome": school_name})
-
     for category in school[0]['refeicoes']:
         if refeicoes[category]:
             new_list_category.append(refeicoes[category])
@@ -489,7 +488,6 @@ class CardapiosEditor(Resource):
 
         limit = int(request.args.get('limit', 0))
         page = int(request.args.get('page', 0))
-
         cardapios = db.cardapios.find(query).sort([('data', -1)])
         if page and limit:
             cardapios = cardapios.skip(limit * (page - 1)).limit(limit)
@@ -609,6 +607,83 @@ class EditarEscola(Resource):
         return ('', 200)
 
 
+@api.route('/editor/unidade_especial/<string:id_unidade_especial>')
+@api.route('/editor/unidade_especial/')
+@api.doc(params={'id_unidade_especial': 'id da unidade especial'})
+class EditarUnidadeEspecial(Resource):
+    def get(self, id_unidade_especial):
+        """retorna dados de uma unidade especial pelo editor"""
+        key = request.headers.get('key')
+        if key != API_KEY:
+            return ('', 401)
+        query = {'_id': id_unidade_especial, 'status': 'ativo'}
+        fields = {'_id': False, 'status': False}
+        special_unit = db.unidades_especiais.find_one(query, fields)
+        if special_unit:
+            response = app.response_class(
+                response=json_util.dumps(special_unit),
+                status=200,
+                mimetype='application/json'
+            )
+        else:
+            response = app.response_class(
+                response=json_util.dumps({'erro': 'Unidade especial inexistente'}),
+                status=404,
+                mimetype='application/json'
+            )
+        return response
+
+    def post(self, id_unidade_especial=None):
+        """atualiza dados de uma unidade especial pelo editor"""
+        key = request.headers.get('key')
+        if key != API_KEY:
+            return ('', 401)
+        app.logger.debug(request.json)
+        try:
+            payload = request.json
+            if '_id' in payload:
+                del payload['_id']
+        except:
+            return app.response_class(
+                response=json_util.dumps({'erro': 'Dados POST não é um JSON válido'}),
+                status=500,
+                mimetype='application/json'
+            )
+        db.unidades_especiais.update_one(
+            {'_id': ObjectId(id_unidade_especial)},
+            {'$set': payload},
+            upsert=True)
+        return ('', 200)
+
+    def delete(self, id_unidade_especial):
+        """exclui uma escola pelo editor"""
+        key = request.headers.get('key')
+        if key != API_KEY:
+            return ('', 401)
+        try:
+            db.unidades_especiais.delete_one(
+                {'_id': ObjectId(id_unidade_especial)})
+        except:
+            return ('', 400)
+        return ('', 200)
+
+
+@api.route('/editor/unidades_especiais')
+@api.response(200, 'lista de unidades especiais')
+class ListaUnidadesEspeciais(Resource):
+    def get(self):
+        """Retorna uma lista de unidades especiais"""
+        query = {}
+        fields = {'_id': True, 'nome': True, 'data_criacao': True, 'data_inicio': True, 'data_fim': True, 'escolas': True}
+        cursor = db.unidades_especiais.find(query, fields)
+        response = app.response_class(
+            response=json_util.dumps(cursor),
+            status=200,
+            mimetype='application/json'
+        )
+        return response
+
+
 @api.route('/editor/remove-cardapio')
 class RemoveCardapios(Resource):
     def post(self):
@@ -616,7 +691,6 @@ class RemoveCardapios(Resource):
         post = request.form['ids']
         ids_menu = json.loads(post)
         count = 0
-
         ''' Iteration and remove row'''
         for ids in ids_menu:
             count += 1
