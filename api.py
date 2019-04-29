@@ -4,23 +4,19 @@ import math
 import os
 import time
 from datetime import datetime
-
 from bson import json_util, ObjectId
 from dateutil.parser import parse
 from flask import Flask, request, render_template, send_file
 from flask_restplus import Api, Resource
 from pymongo import MongoClient
 from xhtml2pdf import pisa
-
 import utils
 from utils import (sort_cardapio_por_refeicao,
                    extract_digits,
                    extract_chars,
                    remove_refeicao_duplicada_sme_conv)
-
 app = Flask(__name__)
 api = Api(app, default='API do Prato Aberto', default_label='endpoints para se comunicar com a API do Prato Aberto')
-
 API_KEY = os.environ.get('API_KEY')
 API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
 client = MongoClient(API_MONGO_URI)
@@ -214,6 +210,14 @@ def _get_school_by_name(school_name):
     return new_list_category
 
 
+def _get_school_id(school_name):
+    school = db.escolas.find({"nome": school_name})
+    try:
+        return str(school[0]['_id'])
+    except:
+        return None
+
+
 def filter_by_menu_school(categories, menu_type_by_school):
     new_dict_categories = {}
     for key, values in categories.items():
@@ -385,15 +389,23 @@ def wipe_unused(basedir, limit):
 
 def find_menu_json(request_data, data):
     """ Return json's menu from a school """
+
+    school_id = _get_school_id(request_data.args.get('nome'))
+    query_unidade_especial = {
+        'escolas': school_id,
+        'data_inicio': {'$lte': data},
+        'data_fim': {'$gte': data}
+    }
+    unidade_especial = db.unidades_especiais.find_one(query_unidade_especial)
     query = {
         'status': 'PUBLICADO'
     }
     if request_data.args.get('agrupamento'):
-        query['agrupamento'] = request_data.args['agrupamento']
+        query['agrupamento'] = request_data.args['agrupamento'] if not unidade_especial else 'UE'
     if request_data.args.get('tipo_atendimento'):
-        query['tipo_atendimento'] = request_data.args['tipo_atendimento']
+        query['tipo_atendimento'] = request_data.args['tipo_atendimento'] if not unidade_especial else 'UE'
     if request_data.args.get('tipo_unidade'):
-        query['tipo_unidade'] = request_data.args['tipo_unidade']
+        query['tipo_unidade'] = request_data.args['tipo_unidade'] if not unidade_especial else unidade_especial['nome']
     if request_data.args.get('idade'):
         query['idade'] = idades_reversed.get(request_data.args['idade'])
     if data:
