@@ -15,10 +15,12 @@ from utils import (sort_cardapio_por_refeicao,
                    extract_digits,
                    extract_chars,
                    remove_refeicao_duplicada_sme_conv)
+
 app = Flask(__name__)
 api = Api(app, default='API do Prato Aberto', default_label='endpoints para se comunicar com a API do Prato Aberto')
 API_KEY = os.environ.get('API_KEY')
 API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
+API_MONGO_URI = 'mongodb://localhost:27017'
 client = MongoClient(API_MONGO_URI)
 db = client['pratoaberto']
 
@@ -233,6 +235,7 @@ def filter_by_menu_school(categories, menu_type_by_school):
 @api.route('/cardapio-pdf')
 @api.doc(params={'data': 'data de um cardápio'})
 class ReportPdf(Resource):
+
     def _get_current_date(self, inicio, fim):
         if inicio.month == fim.month:
             month = '{} a {} de {} de {}'.format(inicio.day, fim.day, utils.translate_date_month(inicio.month),
@@ -390,13 +393,24 @@ def wipe_unused(basedir, limit):
 def find_menu_json(request_data, data):
     """ Return json's menu from a school """
 
+    if not data:
+        start = request_data.args.get('data_inicial')
+        end = request_data.args.get('data_final')
+    else:
+        start = data
+        end = data
+
     school_id = _get_school_id(request_data.args.get('nome'))
+
+    #TODO
     query_unidade_especial = {
         'escolas': school_id,
-        'data_inicio': {'$lte': data},
-        'data_fim': {'$gte': data}
+        'data_inicio': {'$lte': start},
+        'data_fim': {'$gte': end}
     }
+
     unidade_especial = db.unidades_especiais.find_one(query_unidade_especial)
+
     query = {
         'status': 'PUBLICADO'
     }
@@ -686,7 +700,8 @@ class ListaUnidadesEspeciais(Resource):
     def get(self):
         """Retorna uma lista de unidades especiais"""
         query = {}
-        fields = {'_id': True, 'nome': True, 'data_criacao': True, 'data_inicio': True, 'data_fim': True, 'escolas': True}
+        fields = {'_id': True, 'nome': True, 'data_criacao': True, 'data_inicio': True, 'data_fim': True,
+                  'escolas': True}
         cursor = db.unidades_especiais.find(query, fields)
         response = app.response_class(
             response=json_util.dumps(cursor),

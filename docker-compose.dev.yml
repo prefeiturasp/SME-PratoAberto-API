@@ -17,7 +17,7 @@ services:
   db:
     image: mongo:3.4-jessie
     volumes:
-      - /srv/prato_aberto/data_mongo:/data/db
+        - /home/weslei/Desktop/data_mongo20190429:/data/db
     ports:
       - 27017:27017
 
