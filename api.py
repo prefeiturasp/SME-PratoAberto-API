@@ -20,7 +20,7 @@ app = Flask(__name__)
 api = Api(app, default='API do Prato Aberto', default_label='endpoints para se comunicar com a API do Prato Aberto')
 API_KEY = os.environ.get('API_KEY')
 API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
-API_MONGO_URI = 'mongodb://localhost:27017'
+# API_MONGO_URI = 'mongodb://localhost:27017'
 client = MongoClient(API_MONGO_URI)
 db = client['pratoaberto']
 
@@ -216,7 +216,15 @@ def _get_school_id(school_name):
     school = db.escolas.find({"nome": school_name})
     try:
         return str(school[0]['_id'])
-    except:
+    except ValueError:
+        return None
+
+
+def _get_special_unit_by_school_id_and_date(id_school, start):
+    ue = db.unidades_especiais.find_one({"data_inicio": start, "escolas": {'$all': [id_school]}})
+    try:
+        return ue
+    except ValueError:
         return None
 
 
@@ -248,7 +256,7 @@ class ReportPdf(Resource):
 
     def get(self, data=None):
         """retorna um PDF para impressão de um cardápio em um período"""
-        response_menu = adjust_ages(find_menu_json(request, data))
+        response_menu = adjust_ages(find_menu_json(request, data, is_pdf=True))
         response = {}
 
         menu_type_by_school = _get_school_by_name(request.args.get('nome'))
@@ -390,8 +398,12 @@ def wipe_unused(basedir, limit):
     print("Removed {} files.".format(count))
 
 
-def find_menu_json(request_data, data):
+def find_menu_json(request_data, data, is_pdf=False):
     """ Return json's menu from a school """
+
+    school_name = request_data.args.get('nome')
+
+    school_id = _get_school_id(school_name)
 
     if not data:
         start = request_data.args.get('data_inicial')
@@ -400,9 +412,11 @@ def find_menu_json(request_data, data):
         start = data
         end = data
 
-    school_id = _get_school_id(request_data.args.get('nome'))
+    if is_pdf:
+        ue = _get_special_unit_by_school_id_and_date(school_id, start)
+        if ue:
+            end = ue['data_fim']
 
-    #TODO
     query_unidade_especial = {
         'escolas': school_id,
         'data_inicio': {'$lte': start},
