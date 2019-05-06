@@ -186,7 +186,9 @@ def _reorganizes_category(menu_dict):
     category_dict = {}
     for age, menu in menu_dict.items():
         for day in menu:
-            category_dict[age] = day['cardapio'].keys()
+            categories = day['cardapio'].keys()
+            if len(categories) > 1:
+                category_dict[age] = categories
 
     return category_dict
 
@@ -267,6 +269,8 @@ class ReportPdf(Resource):
         menu_organizes = _reorganizes_menu_week(formated_data)
 
         filtered_category_ordered = filter_by_menu_school(catergory_ordered, menu_type_by_school)
+
+        # print(catergory_ordered)
 
         inicio = datetime.strptime(request.args.get('data_inicial'), '%Y%m%d')
         fim = datetime.strptime(request.args.get('data_final'), '%Y%m%d')
