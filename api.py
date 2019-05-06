@@ -20,7 +20,7 @@ app = Flask(__name__)
 api = Api(app, default='API do Prato Aberto', default_label='endpoints para se comunicar com a API do Prato Aberto')
 API_KEY = os.environ.get('API_KEY')
 API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
-# API_MONGO_URI = 'mongodb://localhost:27017'
+API_MONGO_URI = 'mongodb://localhost:27017'
 client = MongoClient(API_MONGO_URI)
 db = client['pratoaberto']
 
