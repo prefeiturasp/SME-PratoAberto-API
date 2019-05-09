@@ -186,13 +186,19 @@ def _reorganizes_category(menu_dict):
     category_dict = {}
     for age, menu in menu_dict.items():
         for day in menu:
-
             categories = list(day['cardapio'].keys())
-
-            if len(categories) > 1:
-                category_dict[age] = categories
+            category_dict[age] = _change_order_categories_list(categories)
 
     return category_dict
+
+
+def _change_order_categories_list(categories):
+    if len(categories) == 5:
+        colacao_index = categories.index('Colação')
+        value = categories.pop(colacao_index)
+        categories.insert(1, value)
+
+    return categories
 
 
 def _reorganizes_menu_week(menu_dict):
