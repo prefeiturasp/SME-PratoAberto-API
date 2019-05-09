@@ -186,7 +186,9 @@ def _reorganizes_category(menu_dict):
     category_dict = {}
     for age, menu in menu_dict.items():
         for day in menu:
-            categories = day['cardapio'].keys()
+
+            categories = list(day['cardapio'].keys())
+
             if len(categories) > 1:
                 category_dict[age] = categories
 
@@ -266,6 +268,7 @@ class ReportPdf(Resource):
         formated_data = _reorganizes_data_menu(response_menu)
         date_organizes = _reorganizes_date(formated_data)
         catergory_ordered = _reorganizes_category(formated_data)
+
         menu_organizes = _reorganizes_menu_week(formated_data)
 
         filtered_category_ordered = filter_by_menu_school(catergory_ordered, menu_type_by_school)
@@ -369,7 +372,43 @@ def _sepate_for_age(key_dict, data_dict):
         if value['idade'] in key_dict.keys():
             key_dict[value['idade']].append({'data': _converter_to_date(value['data']), 'cardapio': value['cardapio'],
                                              'publicacao': _set_datetime(value['data_publicacao'])})
-    return key_dict
+
+    return _separate_menu_by_category(key_dict)
+
+    # return key_dict
+
+
+def _separate_menu_by_category(data):
+    orphan_list = {}
+    new_list = {}
+    """ Loop to separate dicts """
+    for key, values in data.items():
+        new_list[key] = []
+        orphan_list[key] = []
+        for value in values:
+            if len(value['cardapio']) > 1:
+                new_list[key].append(value)
+            else:
+                orphan_list[key].append(value)
+
+    return _mixer_list_menu(new_list, orphan_list)
+
+
+def _mixer_list_menu(new_list, orphan_list):
+    if len(orphan_list) > 0:
+        for key, value in new_list.items():
+            cont = 0
+            for v in value:
+                for or_key, or_value in orphan_list.items():
+                    if len(or_value) > 0:
+                        for o_v in or_value:
+                            if key == or_key and v['data'] == o_v['data']:
+                                key_orphan = list(o_v['cardapio'].keys())[0]
+                                value_orphan = list(o_v['cardapio'].values())[0]
+                                new_list[key][cont]['cardapio'][key_orphan] = value_orphan
+                cont = cont + 1
+
+    return new_list
 
 
 def _set_datetime(str_date):
