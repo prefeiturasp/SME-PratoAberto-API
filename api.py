@@ -279,8 +279,6 @@ class ReportPdf(Resource):
 
         filtered_category_ordered = filter_by_menu_school(catergory_ordered, menu_type_by_school)
 
-        # print(catergory_ordered)
-
         inicio = datetime.strptime(request.args.get('data_inicial'), '%Y%m%d')
         fim = datetime.strptime(request.args.get('data_final'), '%Y%m%d')
 
@@ -292,6 +290,8 @@ class ReportPdf(Resource):
         cpath = os.path.realpath(os.path.dirname(__file__)) + '/static/'
 
         wipe_unused(cpath, 5)
+
+        print(filtered_category_ordered)
 
         html = render_template('cardapio-pdf.html', resp=response, descriptions=formated_data, dates=date_organizes,
                                categories=filtered_category_ordered, menus=menu_organizes)
@@ -374,14 +374,20 @@ def _reorganizes_data_menu(menu_dict):
 
 
 def _sepate_for_age(key_dict, data_dict):
+
+    groupment = False
+    if data_dict[0]['agrupamento'] == 'UE':
+        groupment = True
+
     for value in data_dict:
         if value['idade'] in key_dict.keys():
             key_dict[value['idade']].append({'data': _converter_to_date(value['data']), 'cardapio': value['cardapio'],
                                              'publicacao': _set_datetime(value['data_publicacao'])})
 
-    return _separate_menu_by_category(key_dict)
+    if groupment:
+        return key_dict
 
-    # return key_dict
+    return _separate_menu_by_category(key_dict)
 
 
 def _separate_menu_by_category(data):
