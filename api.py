@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
 import json
-import math
 import os
-import time
 from datetime import datetime
+
+import math
+import time
 from bson import json_util, ObjectId
 from dateutil.parser import parse
 from flask import Flask, request, render_template, send_file
 from flask_restplus import Api, Resource
 from pymongo import MongoClient
 from xhtml2pdf import pisa
+
 import utils
 from utils import (sort_cardapio_por_refeicao,
                    extract_digits,
@@ -218,7 +220,7 @@ def _get_school_id(school_name):
     school = db.escolas.find({"nome": school_name})
     try:
         return str(school[0]['_id'])
-    except ValueError:
+    except (ValueError, IndexError):
         return None
 
 
@@ -402,20 +404,18 @@ def wipe_unused(basedir, limit):
     print("Removed {} files.".format(count))
 
 
-def find_menu_json(request_data, data, is_pdf=False):
+def find_menu_json(request_data, dia, is_pdf=False):
     """ Return json's menu from a school """
-
     school_name = request_data.args.get('nome')
 
-    school_id = _get_school_id(school_name)
-
-    if not data:
+    if not dia:
         start = request_data.args.get('data_inicial')
         end = request_data.args.get('data_final')
     else:
-        start = data
-        end = data
+        start = dia
+        end = dia
 
+    school_id = _get_school_id(school_name)
     if is_pdf:
         ue = _get_special_unit_by_school_id_and_date(school_id, start)
         if ue:
@@ -440,16 +440,16 @@ def find_menu_json(request_data, data, is_pdf=False):
         query['tipo_unidade'] = request_data.args['tipo_unidade'] if not unidade_especial else unidade_especial['nome']
     if request_data.args.get('idade'):
         query['idade'] = idades_reversed.get(request_data.args['idade'])
-    if data:
-        query['data'] = data
+    if dia:
+        query['data'] = dia
     else:
-        data = {}
+        dia = {}
         if request_data.args.get('data_inicial'):
-            data.update({'$gte': request_data.args['data_inicial']})
+            dia.update({'$gte': request_data.args['data_inicial']})
         if request_data.args.get('data_final'):
-            data.update({'$lte': request_data.args['data_final']})
-        if data:
-            query['data'] = data
+            dia.update({'$lte': request_data.args['data_final']})
+        if dia:
+            query['data'] = dia
     limit = int(request_data.args.get('limit', 0))
     page = int(request_data.args.get('page', 0))
     fields = {
