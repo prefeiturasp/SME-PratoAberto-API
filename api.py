@@ -608,11 +608,22 @@ class CardapiosEditor(Resource):
             return ('', 401)
         bulk = db.cardapios.initialize_ordered_bulk_op()
         for item in json_util.loads(request.data.decode("utf-8")):
-            try:
+            if '_id' in item:
                 _id = item['_id']
                 bulk.find({'_id': _id}).update({'$set': item})
-            except:
-                bulk.insert(item)
+            else:
+                cardapio = db.cardapios.find_one({
+                    'tipo_atendimento': item['tipo_atendimento'],
+                    'agrupamento': item['agrupamento'],
+                    'tipo_unidade': item['tipo_unidade'],
+                    'idade': item['idade'],
+                    'data': item['data']})
+                if cardapio:
+                    item['cardapio'].update(cardapio['cardapio'])
+                    item['cardapio_original'].update(cardapio['cardapio_original'])
+                    bulk.find({'_id': cardapio['_id']}).update({'$set': item})
+                else:
+                    bulk.insert(item)
         bulk.execute()
         return ('', 200)
 
