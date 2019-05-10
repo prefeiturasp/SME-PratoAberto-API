@@ -195,7 +195,7 @@ def _reorganizes_category(menu_dict):
 
 
 def _change_order_categories_list(categories):
-    if len(categories) == 5:
+    if 'Colação' in categories:
         colacao_index = categories.index('Colação')
         value = categories.pop(colacao_index)
         categories.insert(1, value)
@@ -292,11 +292,10 @@ class ReportPdf(Resource):
         cpath = os.path.realpath(os.path.dirname(__file__)) + '/static/'
 
         wipe_unused(cpath, 5)
-
-        print(filtered_category_ordered)
+        publication_date = parse(response_menu[0]['data_publicacao']).strftime('%d/%m/%Y %H:%M:%S')
 
         html = render_template('cardapio-pdf.html', resp=response, descriptions=formated_data, dates=date_organizes,
-                               categories=filtered_category_ordered, menus=menu_organizes)
+                               categories=filtered_category_ordered, menus=menu_organizes, publication=publication_date)
         # return Response(html, mimetype="text/html")
 
         pdf = _create_pdf(html)
