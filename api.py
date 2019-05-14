@@ -147,6 +147,50 @@ class CardapioEscola(Resource):
         return response
 
 
+@api.route('/editor/unidade-especial/<id>')
+class UnidadeEspecial(Resource):
+    def get(self, id):
+        json_ue = db.unidades_especiais.find_one({'_id': ObjectId(id)})
+        return app.response_class(
+            response=json_util.dumps(json_ue),
+            status=200,
+            mimetype='application/json'
+        )
+
+
+@api.route('/editor/cardapios-unidade-especial/')
+class CardapioUnidadeEspecial(Resource):
+    def get(self):
+        unit_id = request.args.get('unidade')
+        begin = request.args.get('inicio')
+        end = request.args.get('fim')
+
+        query = {
+            '_id': ObjectId(unit_id),
+            'data_inicio': begin,
+            'data_fim': end
+        }
+
+        special_unit = db.unidades_especiais.find_one(query)
+        if special_unit:
+            query_menu = {"tipo_unidade": special_unit['nome'],
+                          "data": {"$gte": begin, "$lte": end},
+                          "status": 'PUBLICADO'}
+
+            menu_ue = db.cardapios.find(query_menu)
+        else:
+            menu_ue = {}
+
+        return app.response_class(
+            response=json_util.dumps(menu_ue),
+            status=200,
+            mimetype='application/json'
+        )
+
+    def post(self):
+        pass
+
+
 @api.route('/cardapios/<data>')
 @api.route('/cardapios/')
 @api.doc(params={'data': 'data de um cardápio'})
@@ -375,7 +419,6 @@ def _reorganizes_data_menu(menu_dict):
 
 
 def _sepate_for_age(key_dict, data_dict):
-
     groupment = False
     if data_dict[0]['agrupamento'] == 'UE':
         groupment = True
