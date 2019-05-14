@@ -4,11 +4,12 @@ import collections
 def sort_cardapio_por_refeicao(refeicoes_desord):
     ordens_refeicao = ['Desjejum', 'Colação', 'Almoço', 'Lanche', 'Refeição da Tarde',
                        'Lanche - Permanência de 4 ou 8 horas',
-                       'Lanche - Permanência de 5 ou 6 horas', 'Lanche - Permanência de 5 ou 6 horas', 'Refeição',
+                       'Lanche - Permanência de 5 ou 6 horas', 'Lanche - Permanência de 5 ou 6 horas',
+                       'Lanche Período Integral', 'Refeição',
                        'Merenda Seca', 'Merenda Especial Seca',
                        'Merenda Inicial', 'Refeição - Professor', 'Pro Jovem (filhos)', 'Almoço - Professor',
                        'Jantar - Professor',
-                       'Refeição','Sem Refeição']
+                       'Refeição', 'Sem Refeição']
     ordenado = collections.OrderedDict()
     for ordem_refeicao in ordens_refeicao:
         for _ in refeicoes_desord:
