@@ -22,8 +22,9 @@ def remove_refeicao_duplicada_sme_conv(refeicoes):
     retval = []
     refeicoes = sorted(refeicoes, key=lambda r: len(r['cardapio']), reverse=True)
     len_todas_as_idades = (list(refeicoes[0]['cardapio'])).__len__()
+    todas_as_idades_contem_refeicao = 'Refeição' in list(refeicoes[0]['cardapio'])
     for refeicao in refeicoes:
-        if len_todas_as_idades == 1 or (len_todas_as_idades == 2 and refeicao['idade'] != 'Toda Idade'):
+        if len_todas_as_idades == 1 or not todas_as_idades_contem_refeicao or (len_todas_as_idades == 2 and refeicao['idade'] != 'Toda Idade'):
             retval.append(refeicao)
     return retval
 
