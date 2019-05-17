@@ -1,29 +1,28 @@
 # -*- coding: utf-8 -*-
 import json
-import math
 import os
-import time
 from datetime import datetime
-from dateutil.parser import parse
 
+import math
+import time
 from bson import json_util, ObjectId
-from flask import Flask, request, render_template, send_file, Response
+from dateutil.parser import parse
+from flask import Flask, request, render_template, send_file
 from flask_restplus import Api, Resource
 from pymongo import MongoClient
 from xhtml2pdf import pisa
-import utils
 
+import utils
 from utils import (sort_cardapio_por_refeicao,
-                   remove_refeicao_duplicada_sme_conv,
                    extract_digits,
-                   extract_chars)
+                   extract_chars,
+                   remove_refeicao_duplicada_sme_conv)
 
 app = Flask(__name__)
 api = Api(app, default='API do Prato Aberto', default_label='endpoints para se comunicar com a API do Prato Aberto')
-
 API_KEY = os.environ.get('API_KEY')
-# API_MONGO_URI = 'mongodb://localhost:27017'
 API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
+# API_MONGO_URI = 'mongodb://localhost:27017'
 client = MongoClient(API_MONGO_URI)
 db = client['pratoaberto']
 
@@ -148,12 +147,55 @@ class CardapioEscola(Resource):
         return response
 
 
+@api.route('/editor/unidade-especial/<id>')
+class UnidadeEspecial(Resource):
+    def get(self, id):
+        json_ue = db.unidades_especiais.find_one({'_id': ObjectId(id)})
+        return app.response_class(
+            response=json_util.dumps(json_ue),
+            status=200,
+            mimetype='application/json'
+        )
+
+
+@api.route('/editor/cardapios-unidade-especial/')
+class CardapioUnidadeEspecial(Resource):
+    def get(self):
+        unit_id = request.args.get('unidade')
+        begin = request.args.get('inicio')
+        end = request.args.get('fim')
+
+        query = {
+            '_id': ObjectId(unit_id),
+            'data_inicio': begin,
+            'data_fim': end
+        }
+
+        special_unit = db.unidades_especiais.find_one(query)
+        if special_unit:
+            query_menu = {"tipo_unidade": special_unit['nome'],
+                          "data": {"$gte": begin, "$lte": end},
+                          "status": 'PUBLICADO'}
+
+            menu_ue = db.cardapios.find(query_menu)
+        else:
+            menu_ue = {}
+
+        return app.response_class(
+            response=json_util.dumps(menu_ue),
+            status=200,
+            mimetype='application/json'
+        )
+
+    def post(self):
+        pass
+
+
 @api.route('/cardapios/<data>')
 @api.route('/cardapios/')
 @api.doc(params={'data': 'data de um cardápio'})
 class Cardapios(Resource):
     def get(self, data=None):
-
         """retorna os cardápios relacionados a um período"""
         cardapio_ordenado = find_menu_json(request, data)
 
@@ -190,9 +232,19 @@ def _reorganizes_category(menu_dict):
     category_dict = {}
     for age, menu in menu_dict.items():
         for day in menu:
-            category_dict[age] = day['cardapio'].keys()
+            categories = list(day['cardapio'].keys())
+            category_dict[age] = _change_order_categories_list(categories)
 
     return category_dict
+
+
+def _change_order_categories_list(categories):
+    if 'Colação' in categories:
+        colacao_index = categories.index('Colação')
+        value = categories.pop(colacao_index)
+        categories.insert(1, value)
+
+    return categories
 
 
 def _reorganizes_menu_week(menu_dict):
@@ -209,12 +261,27 @@ def _reorganizes_menu_week(menu_dict):
 def _get_school_by_name(school_name):
     new_list_category = []
     school = db.escolas.find({"nome": school_name})
-
     for category in school[0]['refeicoes']:
         if refeicoes[category]:
             new_list_category.append(refeicoes[category])
 
     return new_list_category
+
+
+def _get_school_id(school_name):
+    school = db.escolas.find({"nome": school_name})
+    try:
+        return str(school[0]['_id'])
+    except (ValueError, IndexError):
+        return None
+
+
+def _get_special_unit_by_school_id_and_date(id_school, start):
+    ue = db.unidades_especiais.find_one({"data_inicio": start, "escolas": {'$all': [id_school]}})
+    try:
+        return ue
+    except ValueError:
+        return None
 
 
 def filter_by_menu_school(categories, menu_type_by_school):
@@ -232,6 +299,7 @@ def filter_by_menu_school(categories, menu_type_by_school):
 @api.route('/cardapio-pdf')
 @api.doc(params={'data': 'data de um cardápio'})
 class ReportPdf(Resource):
+
     def _get_current_date(self, inicio, fim):
         if inicio.month == fim.month:
             month = '{} a {} de {} de {}'.format(inicio.day, fim.day, utils.translate_date_month(inicio.month),
@@ -244,7 +312,7 @@ class ReportPdf(Resource):
 
     def get(self, data=None):
         """retorna um PDF para impressão de um cardápio em um período"""
-        response_menu = find_menu_json(request, data)
+        response_menu = adjust_ages(find_menu_json(request, data, is_pdf=True))
         response = {}
 
         menu_type_by_school = _get_school_by_name(request.args.get('nome'))
@@ -252,6 +320,7 @@ class ReportPdf(Resource):
         formated_data = _reorganizes_data_menu(response_menu)
         date_organizes = _reorganizes_date(formated_data)
         catergory_ordered = _reorganizes_category(formated_data)
+
         menu_organizes = _reorganizes_menu_week(formated_data)
 
         filtered_category_ordered = filter_by_menu_school(catergory_ordered, menu_type_by_school)
@@ -267,9 +336,10 @@ class ReportPdf(Resource):
         cpath = os.path.realpath(os.path.dirname(__file__)) + '/static/'
 
         wipe_unused(cpath, 5)
+        publication_date = parse(response_menu[0]['data_publicacao']).strftime('%d/%m/%Y %H:%M:%S')
 
         html = render_template('cardapio-pdf.html', resp=response, descriptions=formated_data, dates=date_organizes,
-                               categories=filtered_category_ordered, menus=menu_organizes)
+                               categories=filtered_category_ordered, menus=menu_organizes, publication=publication_date)
         # return Response(html, mimetype="text/html")
 
         pdf = _create_pdf(html)
@@ -314,6 +384,23 @@ def _create_pdf(pdf_data):
     return filename
 
 
+def adjust_ages(menu_dict):
+    if next((True for item in menu_dict if item['idade'] == 'Toda Idade'), False) and \
+            next((True for item in menu_dict if item['idade'] == 'Todas as idades'), False):
+        menu_dict_ordered = sorted(menu_dict, key=lambda kv: (kv['data'], kv['idade']))
+        for value in menu_dict_ordered:
+            if value['idade'] == 'Toda Idade':
+                cardapio = dict(value['cardapio'])
+            elif value['idade'] == 'Todas as idades':
+                value['cardapio'].update(cardapio)
+        just_all_ages = []
+        for value in menu_dict_ordered:
+            if value['idade'] == 'Todas as idades':
+                just_all_ages.append(value)
+        return just_all_ages
+    return menu_dict
+
+
 def _reorganizes_data_menu(menu_dict):
     age_list = []
     age_dict = {}
@@ -332,11 +419,52 @@ def _reorganizes_data_menu(menu_dict):
 
 
 def _sepate_for_age(key_dict, data_dict):
+    groupment = False
+    if data_dict[0]['agrupamento'] == 'UE':
+        groupment = True
+
     for value in data_dict:
         if value['idade'] in key_dict.keys():
             key_dict[value['idade']].append({'data': _converter_to_date(value['data']), 'cardapio': value['cardapio'],
                                              'publicacao': _set_datetime(value['data_publicacao'])})
-    return key_dict
+
+    if groupment:
+        return key_dict
+
+    return _separate_menu_by_category(key_dict)
+
+
+def _separate_menu_by_category(data):
+    orphan_list = {}
+    new_list = {}
+    """ Loop to separate dicts """
+    for key, values in data.items():
+        new_list[key] = []
+        orphan_list[key] = []
+        for value in values:
+            if len(value['cardapio']) > 1:
+                new_list[key].append(value)
+            else:
+                orphan_list[key].append(value)
+
+    return _mixer_list_menu(new_list, orphan_list)
+
+
+def _mixer_list_menu(new_list, orphan_list):
+    if len(orphan_list) > 0:
+        for key, value in new_list.items():
+            cont = 0
+            for v in value:
+                for or_key, or_value in orphan_list.items():
+                    if len(or_value) > 0:
+                        for o_v in or_value:
+                            if key == or_key and v['data'] == o_v['data']:
+                                key_orphan = list(o_v['cardapio'].keys())[0]
+                                value_orphan = list(o_v['cardapio'].values())[0]
+                                new_list[key][cont]['cardapio'][key_orphan] = value_orphan
+                cont = cont + 1
+
+    return new_list
 
 
 def _set_datetime(str_date):
@@ -369,29 +497,52 @@ def wipe_unused(basedir, limit):
     print("Removed {} files.".format(count))
 
 
-def find_menu_json(request_data, data):
+def find_menu_json(request_data, dia, is_pdf=False):
     """ Return json's menu from a school """
+    school_name = request_data.args.get('nome')
+
+    if not dia:
+        start = request_data.args.get('data_inicial')
+        end = request_data.args.get('data_final')
+    else:
+        start = dia
+        end = dia
+
+    school_id = _get_school_id(school_name)
+    if is_pdf:
+        ue = _get_special_unit_by_school_id_and_date(school_id, start)
+        if ue:
+            end = ue['data_fim']
+
+    query_unidade_especial = {
+        'escolas': school_id,
+        'data_inicio': {'$lte': start},
+        'data_fim': {'$gte': end}
+    }
+
+    unidade_especial = db.unidades_especiais.find_one(query_unidade_especial)
+
     query = {
         'status': 'PUBLICADO'
     }
     if request_data.args.get('agrupamento'):
-        query['agrupamento'] = request_data.args['agrupamento']
+        query['agrupamento'] = request_data.args['agrupamento'] if not unidade_especial else 'UE'
     if request_data.args.get('tipo_atendimento'):
-        query['tipo_atendimento'] = request_data.args['tipo_atendimento']
+        query['tipo_atendimento'] = request_data.args['tipo_atendimento'] if not unidade_especial else 'UE'
     if request_data.args.get('tipo_unidade'):
-        query['tipo_unidade'] = request_data.args['tipo_unidade']
+        query['tipo_unidade'] = request_data.args['tipo_unidade'] if not unidade_especial else unidade_especial['nome']
     if request_data.args.get('idade'):
         query['idade'] = idades_reversed.get(request_data.args['idade'])
-    if data:
-        query['data'] = data
+    if dia:
+        query['data'] = dia
     else:
-        data = {}
+        dia = {}
         if request_data.args.get('data_inicial'):
-            data.update({'$gte': request_data.args['data_inicial']})
+            dia.update({'$gte': request_data.args['data_inicial']})
         if request_data.args.get('data_final'):
-            data.update({'$lte': request_data.args['data_final']})
-        if data:
-            query['data'] = data
+            dia.update({'$lte': request_data.args['data_final']})
+        if dia:
+            query['data'] = dia
     limit = int(request_data.args.get('limit', 0))
     page = int(request_data.args.get('page', 0))
     fields = {
@@ -430,12 +581,16 @@ def find_menu_json(request_data, data):
         try:
             c['idade'] = idades[c['idade']]
             c['cardapio'] = {refeicoes[k]: v for k, v in c['cardapio'].items()}
-            c['cardapio'] = {k: v for k, v in c['cardapio'].items() if k in category_by_school}
+            if category_by_school:
+                c['cardapio'] = {k: v for k, v in c['cardapio'].items() if k in category_by_school}
         except KeyError as e:
             app.logger.debug('erro de chave: {} objeto {}'.format(str(e), c))
 
     for c in cardapio_ordenado:
         c['cardapio'] = sort_cardapio_por_refeicao(c['cardapio'])
+
+    if query['tipo_unidade'] == 'SME_CONVÊNIO' and len(cardapio_ordenado):
+        cardapio_ordenado = remove_refeicao_duplicada_sme_conv(cardapio_ordenado)
 
     return cardapio_ordenado
 
@@ -452,12 +607,17 @@ class CardapiosEditor(Resource):
             query['status'] = {'$in': request.args.getlist('status')}
         else:
             query['status'] = 'PUBLICADO'
-        if request.args.get('agrupamento') and request.args.get('agrupamento') != 'TODOS':
-            query['agrupamento'] = request.args['agrupamento']
-        if request.args.get('tipo_atendimento') and request.args.get('tipo_atendimento') != 'TODOS':
-            query['tipo_atendimento'] = request.args['tipo_atendimento']
-        if request.args.get('tipo_unidade') and request.args.get('tipo_unidade') != 'TODOS':
-            query['tipo_unidade'] = request.args['tipo_unidade']
+        if request.args.get('unidade_especial') and request.args.get('unidade_especial') != 'NENHUMA':
+            query['tipo_unidade'] = request.args.get('unidade_especial')
+            query['tipo_atendimento'] = 'UE'
+            query['agrupamento'] = 'UE'
+        else:
+            if request.args.get('agrupamento') and request.args.get('agrupamento') != 'TODOS':
+                query['agrupamento'] = request.args['agrupamento']
+            if request.args.get('tipo_atendimento') and request.args.get('tipo_atendimento') != 'TODOS':
+                query['tipo_atendimento'] = request.args['tipo_atendimento']
+            if request.args.get('tipo_unidade') and request.args.get('tipo_unidade') != 'TODOS':
+                query['tipo_unidade'] = request.args['tipo_unidade']
         if request.args.get('idade') and request.args.get('idade') != 'TODOS':
             query['idade'] = request.args['idade']
         data = {}
@@ -470,7 +630,6 @@ class CardapiosEditor(Resource):
 
         limit = int(request.args.get('limit', 0))
         page = int(request.args.get('page', 0))
-
         cardapios = db.cardapios.find(query).sort([('data', -1)])
         if page and limit:
             cardapios = cardapios.skip(limit * (page - 1)).limit(limit)
@@ -491,11 +650,22 @@ class CardapiosEditor(Resource):
             return ('', 401)
         bulk = db.cardapios.initialize_ordered_bulk_op()
         for item in json_util.loads(request.data.decode("utf-8")):
-            try:
+            if '_id' in item:
                 _id = item['_id']
                 bulk.find({'_id': _id}).update({'$set': item})
-            except:
-                bulk.insert(item)
+            else:
+                cardapio = db.cardapios.find_one({
+                    'tipo_atendimento': item['tipo_atendimento'],
+                    'agrupamento': item['agrupamento'],
+                    'tipo_unidade': item['tipo_unidade'],
+                    'idade': item['idade'],
+                    'data': item['data']})
+                if cardapio:
+                    item['cardapio'].update(cardapio['cardapio'])
+                    item['cardapio_original'].update(cardapio['cardapio_original'])
+                    bulk.find({'_id': cardapio['_id']}).update({'$set': item})
+                else:
+                    bulk.insert(item)
         bulk.execute()
         return ('', 200)
 
@@ -590,6 +760,84 @@ class EditarEscola(Resource):
         return ('', 200)
 
 
+@api.route('/editor/unidade_especial/<string:id_unidade_especial>')
+@api.route('/editor/unidade_especial/')
+@api.doc(params={'id_unidade_especial': 'id da unidade especial'})
+class EditarUnidadeEspecial(Resource):
+    def get(self, id_unidade_especial):
+        """retorna dados de uma unidade especial pelo editor"""
+        key = request.headers.get('key')
+        if key != API_KEY:
+            return ('', 401)
+        query = {'_id': id_unidade_especial, 'status': 'ativo'}
+        fields = {'_id': False, 'status': False}
+        special_unit = db.unidades_especiais.find_one(query, fields)
+        if special_unit:
+            response = app.response_class(
+                response=json_util.dumps(special_unit),
+                status=200,
+                mimetype='application/json'
+            )
+        else:
+            response = app.response_class(
+                response=json_util.dumps({'erro': 'Unidade especial inexistente'}),
+                status=404,
+                mimetype='application/json'
+            )
+        return response
+
+    def post(self, id_unidade_especial=None):
+        """atualiza dados de uma unidade especial pelo editor"""
+        key = request.headers.get('key')
+        if key != API_KEY:
+            return ('', 401)
+        app.logger.debug(request.json)
+        try:
+            payload = request.json
+            if '_id' in payload:
+                del payload['_id']
+        except:
+            return app.response_class(
+                response=json_util.dumps({'erro': 'Dados POST não é um JSON válido'}),
+                status=500,
+                mimetype='application/json'
+            )
+        db.unidades_especiais.update_one(
+            {'_id': ObjectId(id_unidade_especial)},
+            {'$set': payload},
+            upsert=True)
+        return ('', 200)
+
+    def delete(self, id_unidade_especial):
+        """exclui uma escola pelo editor"""
+        key = request.headers.get('key')
+        if key != API_KEY:
+            return ('', 401)
+        try:
+            db.unidades_especiais.delete_one(
+                {'_id': ObjectId(id_unidade_especial)})
+        except:
+            return ('', 400)
+        return ('', 200)
+
+
+@api.route('/editor/unidades_especiais')
+@api.response(200, 'lista de unidades especiais')
+class ListaUnidadesEspeciais(Resource):
+    def get(self):
+        """Retorna uma lista de unidades especiais"""
+        query = {}
+        fields = {'_id': True, 'nome': True, 'data_criacao': True, 'data_inicio': True, 'data_fim': True,
+                  'escolas': True}
+        cursor = db.unidades_especiais.find(query, fields)
+        response = app.response_class(
+            response=json_util.dumps(cursor),
+            status=200,
+            mimetype='application/json'
+        )
+        return response
+
+
 @api.route('/editor/remove-cardapio')
 class RemoveCardapios(Resource):
     def post(self):
@@ -597,7 +845,6 @@ class RemoveCardapios(Resource):
         post = request.form['ids']
         ids_menu = json.loads(post)
         count = 0
-
         ''' Iteration and remove row'''
         for ids in ids_menu:
             count += 1
@@ -634,5 +881,4 @@ class EditarNotas(Resource):
 
 
 if __name__ == '__main__':
-    # app.run(port=7000, debug=True)
     app.run()

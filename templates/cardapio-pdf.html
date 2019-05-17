@@ -5985,7 +5985,7 @@ table th[class*="span"],
                     {% endfor %}
                 </tr>
 
-                {% set publicacao = menus[age][0]['publicacao'] %}
+{#                {% set publicacao = menus[age][0]['publicacao'] %}#}
 
                 {% for category in categories[age] %}
                     <tr>
@@ -6005,7 +6005,7 @@ table th[class*="span"],
 
             <div id="footer_content" align="left">
             <hr>
-            <b>{{ resp.school_name }} - Faixa Etária: {{ age }} - Publicado Em: {{ publicacao }} hs</b>
+            <b>{{ resp.school_name }} - Faixa Etária: {{ age }} - Publicado Em: {{ publication }} hs</b>
                 {#                    Página <pdf:pagenumber> de <pdf:pagecount> #}
             </div>
 

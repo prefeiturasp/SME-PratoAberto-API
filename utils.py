@@ -4,11 +4,12 @@ import collections
 def sort_cardapio_por_refeicao(refeicoes_desord):
     ordens_refeicao = ['Desjejum', 'Colação', 'Almoço', 'Lanche', 'Refeição da Tarde',
                        'Lanche - Permanência de 4 ou 8 horas',
-                       'Lanche - Permanência de 5 ou 6 horas', 'Lanche - Permanência de 5 ou 6 horas', 'Refeição',
-                       'Merenda Seca',
+                       'Lanche - Permanência de 5 ou 6 horas', 'Lanche - Permanência de 5 ou 6 horas',
+                       'Lanche Período Integral', 'Refeição',
+                       'Merenda Seca', 'Merenda Especial Seca',
                        'Merenda Inicial', 'Refeição - Professor', 'Pro Jovem (filhos)', 'Almoço - Professor',
                        'Jantar - Professor',
-                       'Refeição','Sem Refeição']
+                       'Refeição', 'Sem Refeição']
     ordenado = collections.OrderedDict()
     for ordem_refeicao in ordens_refeicao:
         for _ in refeicoes_desord:
@@ -19,8 +20,11 @@ def sort_cardapio_por_refeicao(refeicoes_desord):
 
 def remove_refeicao_duplicada_sme_conv(refeicoes):
     retval = []
+    refeicoes = sorted(refeicoes, key=lambda r: len(r['cardapio']), reverse=True)
+    len_todas_as_idades = (list(refeicoes[0]['cardapio'])).__len__()
+    todas_as_idades_contem_refeicao = 'Refeição' in list(refeicoes[0]['cardapio'])
     for refeicao in refeicoes:
-        if refeicao['idade'] != 'Toda Idade':  # remove "toda idade" e deixa somente "todas as idades"
+        if len_todas_as_idades == 1 or not todas_as_idades_contem_refeicao or (len_todas_as_idades == 2 and refeicao['idade'] != 'Toda Idade'):
             retval.append(refeicao)
     return retval
 
