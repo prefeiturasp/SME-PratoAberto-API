@@ -675,6 +675,45 @@ class CardapiosEditor(Resource):
         return ('', 200)
 
 
+@api.route('/editor/cardapios-unidades-especiais')
+class CardapiosUnidadesEspeciaisEditor(Resource):
+    def get(self):
+        """retorna os cardápios de unidades especiais para o editor"""
+        key = request.headers.get('key')
+        if key != API_KEY:
+            return ('', 401)
+        query = {}
+        query['status'] = {'$in': request.args.getlist('status')}
+        query['tipo_atendimento'] = 'UE'
+        query['agrupamento'] = 'UE'
+        if request.args.get('unidade_especial') and request.args.get('unidade_especial') != 'NENHUMA':
+            query['tipo_unidade'] = request.args.get('unidade_especial')
+        if request.args.get('idade') and request.args.get('idade') != 'TODOS':
+            query['idade'] = request.args['idade']
+        data = {}
+        if request.args.get('data_inicial'):
+            data.update({'$gte': request.args['data_inicial']})
+        if request.args.get('data_final'):
+            data.update({'$lte': request.args['data_final']})
+        if data:
+            query['data'] = data
+
+        limit = int(request.args.get('limit', 0))
+        page = int(request.args.get('page', 0))
+        cardapios = db.cardapios.find(query).sort([('data', -1)])
+        if page and limit:
+            cardapios = cardapios.skip(limit * (page - 1)).limit(limit)
+        elif limit:
+            cardapios = cardapios.limit(limit)
+
+        response = app.response_class(
+            response=json_util.dumps(cardapios),
+            status=200,
+            mimetype='application/json'
+        )
+        return response
+
+
 @api.route('/v2/editor/escolas')
 class EscolasEditor(Resource):
     def get(self):
