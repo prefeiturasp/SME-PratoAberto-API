@@ -420,7 +420,7 @@ def _reorganizes_data_menu(menu_dict):
 
 def _sepate_for_age(key_dict, data_dict):
     groupment = False
-    if data_dict[0]['agrupamento'] == 'UE':
+    if len(data_dict) and data_dict[0]['agrupamento'] == 'UE':
         groupment = True
 
     for value in data_dict:
@@ -437,16 +437,21 @@ def _sepate_for_age(key_dict, data_dict):
 def _separate_menu_by_category(data):
     orphan_list = {}
     new_list = {}
+    just_one = False
     """ Loop to separate dicts """
     for key, values in data.items():
         new_list[key] = []
         orphan_list[key] = []
         for value in values:
-            if len(value['cardapio']) > 1:
+            if len(value['cardapio']) == 1:
+                new_list[key].append(value)
+                just_one = True
+            elif len(value['cardapio']) > 1:
                 new_list[key].append(value)
             else:
                 orphan_list[key].append(value)
-
+    if just_one:
+        return new_list
     return _mixer_list_menu(new_list, orphan_list)
 
 
