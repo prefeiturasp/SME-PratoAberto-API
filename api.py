@@ -147,6 +147,22 @@ class CardapioEscola(Resource):
         return response
 
 
+@api.route('/ajuste-datas-cardapios/')
+class AjusteDatasCardapios(Resource):
+    def get(self):
+        hoje = datetime.now()
+        json_cardapios = db.cardapios.find({'data': 'Data'})
+        for cardapio in json_cardapios:
+            id = cardapio['_id']
+            cardapio['data'] = datetime.strftime(hoje, '%Y%m%d')
+            db.cardapios.update_one({"_id": ObjectId(id)}, {"$set": cardapio})
+        return app.response_class(
+            response=json_util.dumps({'message': 'Datas alteradas para hoje'}),
+            status=200,
+            mimetype='application/json'
+        )
+
+
 @api.route('/editor/unidade-especial/<id>')
 class UnidadeEspecial(Resource):
     def get(self, id):
