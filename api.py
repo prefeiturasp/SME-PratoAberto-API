@@ -404,9 +404,12 @@ def adjust_ages(menu_dict):
     if next((True for item in menu_dict if item['idade'] == 'Toda Idade'), False) and \
             next((True for item in menu_dict if item['idade'] == 'Todas as idades'), False):
         menu_dict_ordered = sorted(menu_dict, key=lambda kv: (kv['data'], kv['idade']))
+        cardapio = None
         for value in menu_dict_ordered:
-            if value['idade'] == 'Todas as idades':
-                value['cardapio'].update(dict(value['cardapio']))
+            if value['idade'] == 'Toda Idade':
+                cardapio = dict(value['cardapio'])
+            elif value['idade'] == 'Todas as idades' and cardapio:
+                value['cardapio'].update(cardapio)
         just_all_ages = []
         for value in menu_dict_ordered:
             if value['idade'] == 'Todas as idades':
