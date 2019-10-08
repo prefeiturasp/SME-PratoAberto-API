@@ -17,12 +17,12 @@ from utils import (sort_cardapio_por_refeicao,
                    extract_digits,
                    extract_chars,
                    remove_refeicao_duplicada_sme_conv)
-
 app = Flask(__name__)
 api = Api(app, default='API do Prato Aberto', default_label='endpoints para se comunicar com a API do Prato Aberto')
 API_KEY = os.environ.get('API_KEY')
 API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
 # API_MONGO_URI = 'mongodb://localhost:27017'
+
 client = MongoClient(API_MONGO_URI)
 db = client['pratoaberto']
 
@@ -281,7 +281,7 @@ def _get_school_by_name(school_name):
         if refeicoes[category]:
             new_list_category.append(refeicoes[category])
 
-    return new_list_category
+    return new_list_category, school[0]['idades']
 
 
 def _get_school_id(school_name):
@@ -331,7 +331,7 @@ class ReportPdf(Resource):
         response_menu = adjust_ages(find_menu_json(request, data, is_pdf=True))
         response = {}
 
-        menu_type_by_school = _get_school_by_name(request.args.get('nome'))
+        menu_type_by_school, _ = _get_school_by_name(request.args.get('nome'))
 
         formated_data = _reorganizes_data_menu(response_menu)
         date_organizes = _reorganizes_date(formated_data)
@@ -431,7 +431,6 @@ def _reorganizes_data_menu(menu_dict):
         for data in menu_dict:
             if data['idade'] in age_dict:
                 age_dict[age] = []
-
     return _sepate_for_age(age_dict, menu_dict)
 
 
@@ -485,7 +484,6 @@ def _mixer_list_menu(new_list, orphan_list):
                                 value_orphan = list(o_v['cardapio'].values())[0]
                                 new_list[key][cont]['cardapio'][key_orphan] = value_orphan
                 cont = cont + 1
-
     return new_list
 
 
@@ -586,16 +584,17 @@ def find_menu_json(request_data, dia, is_pdf=False):
                            'Q - 4 A 6 ANOS PARCIAL', 'H - ADULTO', 'Z - UNIDADES SEM FAIXA', 'S - FILHOS PRO JOVEM',
                            'V - PROFESSOR', 'U - PROFESSOR JANTAR CEI']
     category_by_school = None
+    school_ages = None
 
     if request_data.args.get('nome'):
-        category_by_school = _get_school_by_name(request_data.args.get('nome'))
+        category_by_school, school_ages = _get_school_by_name(request_data.args.get('nome'))
 
     for c in cardapios:
         _cardapios.append(c)
 
     for i in definicao_ordenacao:
         for c in _cardapios:
-            if i == c['idade']:
+            if i == c['idade'] and i in school_ages:
                 cardapio_ordenado.append(c)
                 continue
 
