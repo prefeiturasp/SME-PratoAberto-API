@@ -6,7 +6,7 @@ pytest-flask
 pytest-cov
 html5lib==1.0.1
 pdfkit==0.6.1
-Pillow==5.4.1
+Pillow==6.2.0
 PyPDF2==1.26.0
 reportlab==3.5.13
 six==1.12.0
