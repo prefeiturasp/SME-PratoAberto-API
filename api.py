@@ -619,6 +619,7 @@ def find_menu_json(request_data, dia, is_pdf=False):
 @api.route('/editor/cardapios')
 class CardapiosEditor(Resource):
     def get(self):
+        db.cardapios.create_index([('data', -1)])
         """retorna os cardápios para o editor"""
         key = request.headers.get('key')
         if key != API_KEY:
