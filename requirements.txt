@@ -1,7 +1,7 @@
 Flask==0.12.2
 gunicorn==19.7.1
 pymongo==3.4.0
-werkzeug
+Werkzeug==0.16.1
 pytest-flask
 pytest-cov
 html5lib==1.0.1
