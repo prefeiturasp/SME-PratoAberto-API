@@ -14,3 +14,6 @@ webencodings==0.5.1
 xhtml2pdf==0.2.3
 flask-restplus==0.12.1
 python-dateutil==2.8.0
+sentry-sdk==0.10.2
+python-dotenv==0.15.0
+blinker==1.4
