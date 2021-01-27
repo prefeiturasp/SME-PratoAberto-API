@@ -11,12 +11,28 @@ from flask import Flask, request, render_template, send_file
 from flask_restplus import Api, Resource
 from pymongo import MongoClient
 from xhtml2pdf import pisa
+from dotenv import load_dotenv
 
 import utils
 from utils import (sort_cardapio_por_refeicao,
                    extract_digits,
                    extract_chars,
                    remove_refeicao_duplicada_sme_conv)
+
+load_dotenv()
+
+sentry_url = os.environ.get('SENTRY_URL')
+if sentry_url:
+    import sentry_sdk
+    from sentry_sdk.integrations.flask import FlaskIntegration
+    sentry_environment = os.environ.get('SENTRY_ENVIRONMENT')
+
+    sentry_sdk.init(
+        dsn=sentry_url,
+        environment=sentry_environment,
+        integrations=[FlaskIntegration()]
+    )
+
 app = Flask(__name__)
 api = Api(app, default='API do Prato Aberto', default_label='endpoints para se comunicar com a API do Prato Aberto')
 API_KEY = os.environ.get('API_KEY')
