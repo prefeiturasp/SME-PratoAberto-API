@@ -49,6 +49,11 @@ with open('de_para.json', 'r') as f:
     idades_reversed = {v: k for k, v in conf['idades'].items()}
 
 
+@app.route('/debug-sentry')
+def trigger_error():
+    division_by_zero = 1 / 0
+    
+
 @api.route('/escolas')
 @api.response(200, 'lista de escolas')
 class ListaEscolas(Resource):
