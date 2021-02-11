@@ -528,14 +528,15 @@ def wipe_unused(basedir, limit):
     :param basedir: directory to clean
     :param limit: minutes
     """
-    atime_limit = time.time() - limit
-    count = 0
-    for filename in os.listdir(basedir):
-        path = os.path.join(basedir, filename)
-        if os.path.getatime(path) < atime_limit:
-            os.remove(path)
-            count += 1
-    print("Removed {} files.".format(count))
+    if os.path.exists(basedir):
+        atime_limit = time.time() - limit
+        count = 0
+        for filename in os.listdir(basedir):
+            path = os.path.join(basedir, filename)
+            if os.path.getatime(path) < atime_limit:
+                os.remove(path)
+                count += 1
+        print("Removed {} files.".format(count))
 
 
 def find_menu_json(request_data, dia, is_pdf=False):
