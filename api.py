@@ -407,6 +407,8 @@ def _create_pdf(pdf_data):
 
     cdir = os.path.dirname(os.path.realpath(__file__))
     path = os.path.join(cdir, 'static')
+    if not os.path.exists(path):
+        os.mkdir(path)
     name = 'cardapio_mensal_{}.pdf'.format(datetime.strftime(today, '%d_%m_%Y_%H_%M_%S'))
     filename = os.path.join(path, name)
 
