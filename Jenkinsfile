@@ -1,4 +1,4 @@
-[200~pipeline {
+pipeline {
     agent {
       node { 
         label 'py-uniformes'
