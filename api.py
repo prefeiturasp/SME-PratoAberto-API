@@ -12,6 +12,7 @@ from flask_restplus import Api, Resource
 from pymongo import MongoClient
 from xhtml2pdf import pisa
 from dotenv import load_dotenv
+from flask_cors import CORS
 
 import utils
 from utils import (sort_cardapio_por_refeicao,
@@ -34,10 +35,10 @@ if sentry_url:
     )
 
 app = Flask(__name__)
+CORS(app)
 api = Api(app, default='API do Prato Aberto', default_label='endpoints para se comunicar com a API do Prato Aberto')
 API_KEY = os.environ.get('API_KEY')
 API_MONGO_URI = 'mongodb://{}'.format(os.environ.get('API_MONGO_URI'))
-# API_MONGO_URI = 'mongodb://localhost:27017'
 
 client = MongoClient(API_MONGO_URI)
 db = client['pratoaberto']
