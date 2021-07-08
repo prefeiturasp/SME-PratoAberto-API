@@ -28,7 +28,7 @@ pipeline {
           steps {
               withSonarQubeEnv('sonarqube-local'){
                 sh 'echo "[ INFO ] Iniciando analise Sonar..." && sonar-scanner \
-                -Dsonar.projectKey=SME-PratoAbertoEditor \
+                -Dsonar.projectKey=SME-PratoAberto-API \
                 -Dsonar.sources=.'
             }
           }
