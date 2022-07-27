@@ -570,8 +570,13 @@ def find_menu_json(request_data, dia, is_pdf=False):
     query = {
         'status': 'PUBLICADO'
     }
-    if request_data.args.get('agrupamento'):
-        query['agrupamento'] = request_data.args['agrupamento'] if not unidade_especial else 'UE'
+
+    edital_corrente = db.escolas_editais.find_one(
+        {'escola': int(school_id), '$or': [{'data_fim': {'$gte': str(dia)}}, {'data_fim': None}]})
+
+    edital_corrente_nome = edital_corrente['edital'] if edital_corrente else 'EDITAL 78/2016'
+
+    query['agrupamento'] = edital_corrente_nome if not unidade_especial else 'UE'
     if request_data.args.get('tipo_atendimento'):
         query['tipo_atendimento'] = request_data.args['tipo_atendimento'] if not unidade_especial else 'UE'
     if request_data.args.get('tipo_unidade'):
