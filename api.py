@@ -91,7 +91,9 @@ class DetalheEscola(Resource):
         query = {'_id': id_escola, 'status': 'ativo'}
         fields = {'_id': False, 'status': False}
         escola = db.escolas.find_one(query, fields)
+        editais = db.escolas_editais.find({'escola': int(id_escola)})
         if escola:
+            escola['editais'] = editais
             if not raw:
                 if 'idades' in escola:
                     escola['idades'] = [idades.get(x, x) for x in escola['idades']]
@@ -832,6 +834,13 @@ class EditarEscola(Resource):
                 status=500,
                 mimetype='application/json'
             )
+        db.escolas_editais.delete_many({'escola': int(id_escola)})
+        if 'edital_1' in payload:
+            edital_1 = payload.pop('edital_1')
+            db.escolas_editais.insert_one(edital_1)
+        if 'edital_2' in payload:
+            edital_2 = payload.pop('edital_2')
+            db.escolas_editais.insert_one(edital_2)
         db.escolas.update_one(
             {'_id': id_escola},
             {'$set': payload},
