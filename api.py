@@ -971,5 +971,42 @@ class EditarNotas(Resource):
         )
 
 
+@api.route('/migrar_historico_editais')
+class MigrarHistoricoEditais(Resource):
+    def get(self):
+        response = {}
+        if 'editais' not in db.collection_names():
+            db.create_collection('editais')
+            db.editais.insert_many([
+                {'nome': '1', 'data_criacao': datetime.now()},
+                {'nome': '2', 'data_criacao': datetime.now()},
+                {'nome': '3', 'data_criacao': datetime.now()},
+                {'nome': '4', 'data_criacao': datetime.now()},
+                {'nome': 'EDITAL 78/2016', 'data_criacao': datetime.now()},
+                {'nome': 'Novo Edital', 'data_criacao': datetime.now()}])
+            response['editais'] = 'editais criados com sucesso'
+        else:
+            response['editais'] = 'collection editais já criada'
+        if 'escolas_editais' not in db.collection_names():
+            db.create_collection('escolas_editais')
+            bulk = db.escolas_editais.initialize_ordered_bulk_op()
+            escolas = db.escolas.find()
+            for escola in escolas:
+                bulk.insert({'edital': escola['agrupamento'],
+                             'escola': escola['_id'],
+                             'data_inicio': '20100101',
+                             'data_fim':  None})
+            bulk.execute()
+            response['escolas_editais'] = 'collection escolas_editais criada com sucesso'
+        else:
+            response['escolas_editais'] = 'collection escolas_editais já criada'
+
+        return app.response_class(
+            response=json_util.dumps(response),
+            status=200,
+            mimetype='application/json'
+        )
+
+
 if __name__ == '__main__':
     app.run()
