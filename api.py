@@ -1003,7 +1003,7 @@ class MigrarHistoricoEditais(Resource):
             for escola in escolas:
                 bulk.insert({'edital': escola['agrupamento'],
                              'escola': escola['_id'],
-                             'data_inicio': '20100101',
+                             'data_inicio': '20171218',
                              'data_fim':  None})
             bulk.execute()
             response['escolas_editais'] = 'collection escolas_editais criada com sucesso'
