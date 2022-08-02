@@ -91,7 +91,9 @@ class DetalheEscola(Resource):
         query = {'_id': id_escola, 'status': 'ativo'}
         fields = {'_id': False, 'status': False}
         escola = db.escolas.find_one(query, fields)
+        editais = db.escolas_editais.find({'escola': int(id_escola)})
         if escola:
+            escola['editais'] = editais
             if not raw:
                 if 'idades' in escola:
                     escola['idades'] = [idades.get(x, x) for x in escola['idades']]
@@ -570,8 +572,13 @@ def find_menu_json(request_data, dia, is_pdf=False):
     query = {
         'status': 'PUBLICADO'
     }
-    if request_data.args.get('agrupamento'):
-        query['agrupamento'] = request_data.args['agrupamento'] if not unidade_especial else 'UE'
+
+    edital_corrente = db.escolas_editais.find_one(
+        {'escola': int(school_id), '$or': [{'data_fim': {'$gte': str(dia)}}, {'data_fim': None}]})
+
+    edital_corrente_nome = edital_corrente['edital'] if edital_corrente else 'EDITAL 78/2016'
+
+    query['agrupamento'] = edital_corrente_nome if not unidade_especial else 'UE'
     if request_data.args.get('tipo_atendimento'):
         query['tipo_atendimento'] = request_data.args['tipo_atendimento'] if not unidade_especial else 'UE'
     if request_data.args.get('tipo_unidade'):
@@ -827,6 +834,13 @@ class EditarEscola(Resource):
                 status=500,
                 mimetype='application/json'
             )
+        db.escolas_editais.delete_many({'escola': int(id_escola)})
+        if 'edital_1' in payload:
+            edital_1 = payload.pop('edital_1')
+            db.escolas_editais.insert_one(edital_1)
+        if 'edital_2' in payload:
+            edital_2 = payload.pop('edital_2')
+            db.escolas_editais.insert_one(edital_2)
         db.escolas.update_one(
             {'_id': id_escola},
             {'$set': payload},
@@ -961,6 +975,43 @@ class EditarNotas(Resource):
         db.notas.update_one({"_id": 1}, {"$set": data})
         return app.response_class(
             response='editor atualizado com sucesso',
+            status=200,
+            mimetype='application/json'
+        )
+
+
+@api.route('/migrar_historico_editais')
+class MigrarHistoricoEditais(Resource):
+    def get(self):
+        response = {}
+        if 'editais' not in db.collection_names():
+            db.create_collection('editais')
+            db.editais.insert_many([
+                {'nome': '1', 'data_criacao': datetime.now()},
+                {'nome': '2', 'data_criacao': datetime.now()},
+                {'nome': '3', 'data_criacao': datetime.now()},
+                {'nome': '4', 'data_criacao': datetime.now()},
+                {'nome': 'EDITAL 78/2016', 'data_criacao': datetime.now()},
+                {'nome': 'Novo Edital', 'data_criacao': datetime.now()}])
+            response['editais'] = 'editais criados com sucesso'
+        else:
+            response['editais'] = 'collection editais já criada'
+        if 'escolas_editais' not in db.collection_names():
+            db.create_collection('escolas_editais')
+            bulk = db.escolas_editais.initialize_ordered_bulk_op()
+            escolas = db.escolas.find()
+            for escola in escolas:
+                bulk.insert({'edital': escola['agrupamento'],
+                             'escola': escola['_id'],
+                             'data_inicio': '20171218',
+                             'data_fim':  None})
+            bulk.execute()
+            response['escolas_editais'] = 'collection escolas_editais criada com sucesso'
+        else:
+            response['escolas_editais'] = 'collection escolas_editais já criada'
+
+        return app.response_class(
+            response=json_util.dumps(response),
             status=200,
             mimetype='application/json'
         )
