@@ -577,10 +577,11 @@ def find_menu_json(request_data, dia, is_pdf=False):
         {'escola': int(school_id), '$or': [{'data_fim': {'$gte': str(dia)}}, {'data_fim': None}]})
 
     edital_corrente_nome = edital_corrente['edital'] if edital_corrente else 'EDITAL 78/2016'
+    tipo_gestao_corrente = edital_corrente['tipo_atendimento'] if edital_corrente else 'TERCEIRIZADA'
 
     query['agrupamento'] = edital_corrente_nome if not unidade_especial else 'UE'
     if request_data.args.get('tipo_atendimento'):
-        query['tipo_atendimento'] = request_data.args['tipo_atendimento'] if not unidade_especial else 'UE'
+        query['tipo_atendimento'] = tipo_gestao_corrente if not unidade_especial else 'UE'
     if request_data.args.get('tipo_unidade'):
         query['tipo_unidade'] = request_data.args['tipo_unidade'] if not unidade_especial else unidade_especial['nome']
     if request_data.args.get('idade'):
@@ -1012,6 +1013,50 @@ class MigrarHistoricoEditais(Resource):
 
         return app.response_class(
             response=json_util.dumps(response),
+            status=200,
+            mimetype='application/json'
+        )
+
+
+@api.route('/migrar_historico_gestao')
+class MigrarHistoricoGestao(Resource):
+    """Migra gestão das escolas para a tabela de histórico de editais."""
+    def get(self):
+        response = {}
+        if 'escolas_editais' in db.collection_names():
+            escolas_terceirizadas = db.escolas.find({'tipo_atendimento': 'TERCEIRIZADA'})
+            escolas_terceirizadas_ids = [escola['_id'] for escola in escolas_terceirizadas]
+            db.escolas_editais.update_many({'escola': {'$in': escolas_terceirizadas_ids}},
+                                           {'$set': {'tipo_atendimento': 'TERCEIRIZADA'}})
+            escolas_mistas = db.escolas.find({'tipo_atendimento': 'MISTA'})
+            escolas_mistas_ids = [escola['_id'] for escola in escolas_mistas]
+            db.escolas_editais.update_many({'escola': {'$in': escolas_mistas_ids}},
+                                           {'$set': {'tipo_atendimento': 'MISTA'}})
+            escolas_diretas = db.escolas.find({'tipo_atendimento': 'DIRETA'})
+            escolas_diretas_ids = [escola['_id'] for escola in escolas_diretas]
+            db.escolas_editais.update_many({'escola': {'$in': escolas_diretas_ids}},
+                                           {'$set': {'tipo_atendimento': 'DIRETA'}})
+            response['escolas_editais'] = 'collection escolas_editais atualizada com tipo_atendimento com sucesso'
+        else:
+            response['escolas_editais'] = 'collection escolas_editais não existe'
+        return app.response_class(
+            response=json_util.dumps(response),
+            status=200,
+            mimetype='application/json'
+        )
+
+
+@api.route('/editor/escolas_editais')
+@api.route('/editor/escolas_editais/<string:ids_escolas>')
+class EscolasEditais(Resource):
+    def get(self, ids_escolas=None):
+        if ids_escolas:
+            editais = db.escolas_editais.find({'data_fim': None,
+                                               'escola': {'$in': [int(e) for e in ids_escolas.split(',')]}})
+        else:
+            editais = db.escolas_editais.find({'data_fim': None})
+        return app.response_class(
+            response=json_util.dumps(editais),
             status=200,
             mimetype='application/json'
         )
