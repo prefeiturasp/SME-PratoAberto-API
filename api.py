@@ -611,11 +611,11 @@ def find_menu_json(request_data, dia, is_pdf=False):
     _cardapios = []
     cardapio_ordenado = []
     definicao_ordenacao = ['A - 0 A 1 MES', 'B - 1 A 3 MESES', 'C - 4 A 5 MESES', 'D - 0 A 5 MESES', 'D - 6 A 7 MESES',
-                           'D - 6 MESES', 'D - 7 MESES', 'E - 8 A 11 MESES', 'X - 1A -1A E 11MES', 'F - 2 A 3 ANOS',
-                           'G - 4 A 6 ANOS', 'I - 2 A 6 ANOS', 'W - EMEI DA CEMEI', 'N - 6 A 7 MESES PARCIAL',
-                           'O - 8 A 11 MESES PARCIAL', 'Y - 1A -1A E 11MES PARCIAL', 'P - 2 A 3 ANOS PARCIAL',
-                           'Q - 4 A 6 ANOS PARCIAL', 'H - ADULTO', 'Z - UNIDADES SEM FAIXA', 'S - FILHOS PRO JOVEM',
-                           'V - PROFESSOR', 'U - PROFESSOR JANTAR CEI']
+                           'D - 6 MESES', 'D - 7 MESES', 'E - 7 A 11 MESES', 'E - 8 A 11 MESES', 'X - 1A -1A E 11MES',
+                           'F - 1 A 3 ANOS', 'F - 2 A 3 ANOS', 'G - 4 A 6 ANOS', 'I - 2 A 6 ANOS', 'W - EMEI DA CEMEI',
+                           'N - 6 A 7 MESES PARCIAL', 'O - 8 A 11 MESES PARCIAL', 'Y - 1A -1A E 11MES PARCIAL',
+                           'P - 2 A 3 ANOS PARCIAL', 'Q - 4 A 6 ANOS PARCIAL', 'H - ADULTO', 'Z - UNIDADES SEM FAIXA',
+                           'S - FILHOS PRO JOVEM', 'V - PROFESSOR', 'U - PROFESSOR JANTAR CEI']
     category_by_school = None
     school_ages = None
 
