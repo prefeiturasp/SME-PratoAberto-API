@@ -572,9 +572,14 @@ def find_menu_json(request_data, dia, is_pdf=False):
     query = {
         'status': 'PUBLICADO'
     }
-
-    edital_corrente = db.escolas_editais.find_one(
-        {'escola': int(school_id), '$or': [{'data_fim': {'$gte': str(dia)}}, {'data_fim': None}]})
+    if start == end:
+        edital_corrente = db.escolas_editais.find_one(
+            {'escola': int(school_id), '$or': [{'data_fim': {'$gte': str(dia)}}, {'data_fim': None}]})
+    else:
+        edital_corrente = db.escolas_editais.find_one(
+            {'escola': int(school_id), 'data_inicio': {'$lte': str(start)},
+             '$or': [{'data_fim': {'$gte': str(end)}}, {'data_fim': None}]}
+        )
 
     edital_corrente_nome = edital_corrente['edital'] if edital_corrente else 'EDITAL 78/2016'
     tipo_gestao_corrente = edital_corrente['tipo_atendimento'] if edital_corrente else 'TERCEIRIZADA'
