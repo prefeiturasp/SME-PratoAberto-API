@@ -1056,12 +1056,24 @@ class MigrarHistoricoGestao(Resource):
 class EscolasEditais(Resource):
     def get(self, ids_escolas=None):
         if ids_escolas:
+            array_ids = [int(e) for e in ids_escolas.split(',')]
             editais = db.escolas_editais.find({'data_fim': None,
-                                               'escola': {'$in': [int(e) for e in ids_escolas.split(',')]}})
+                                               'escola': {'$in': array_ids}})
+            json_editais_obj = json_util.loads(json_util.dumps(editais))
+            escolas_ids = [edital['escola'] for edital in json_editais_obj]
+            lista_editais_faltando = list(set(array_ids) - set(escolas_ids))
+            for escola in lista_editais_faltando:
+                pointer_escola = db.escolas_editais.find_one({'escola': escola})
+                json_editais_obj.append(pointer_escola)
+            for edital in json_editais_obj:
+                del edital['_id']
+            json_editais = json.dumps(json_editais_obj)
         else:
             editais = db.escolas_editais.find({'data_fim': None})
+            json_editais = json_util.dumps(editais)
+
         return app.response_class(
-            response=json_util.dumps(editais),
+            response=json_editais,
             status=200,
             mimetype='application/json'
         )
