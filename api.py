@@ -1067,5 +1067,28 @@ class EscolasEditais(Resource):
         )
 
 
+@api.route('/editor/escolas_editais/criar_escola_edital/<int:id_escola>')
+class EscolasEditais(Resource):
+    def get(self, id_escola=None):
+        response = {}
+        if db.escolas_editais.find_one({'escola': id_escola}):
+            response['data'] = 'Escola já possui ao menos um edital'
+        else:
+            escola = db.escolas.find_one({'_id': id_escola})
+            db.escolas_editais.insert_one({
+                "edital": escola["agrupamento"],
+                "escola": id_escola,
+                "data_inicio": "20171218",
+                "data_fim": None,
+                "tipo_atendimento": escola["tipo_atendimento"]
+            })
+            response['data'] = 'Edital criado com sucesso'
+        return app.response_class(
+            response=json_util.dumps(response),
+            status=200,
+            mimetype='application/json'
+        )
+
+
 if __name__ == '__main__':
     app.run()
