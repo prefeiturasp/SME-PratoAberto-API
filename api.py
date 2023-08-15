@@ -620,7 +620,8 @@ def find_menu_json(request_data, dia, is_pdf=False):
                            'F - 1 A 3 ANOS', 'F - 2 A 3 ANOS', 'G - 4 A 6 ANOS', 'I - 2 A 6 ANOS', 'W - EMEI DA CEMEI',
                            'N - 6 A 7 MESES PARCIAL', 'O - 8 A 11 MESES PARCIAL', 'Y - 1A -1A E 11MES PARCIAL',
                            'P - 2 A 3 ANOS PARCIAL', 'Q - 4 A 6 ANOS PARCIAL', 'H - ADULTO', 'Z - UNIDADES SEM FAIXA',
-                           'S - FILHOS PRO JOVEM', 'V - PROFESSOR', 'U - PROFESSOR JANTAR CEI']
+                           'S - FILHOS PRO JOVEM', 'V - PROFESSOR', 'U - PROFESSOR JANTAR CEI',
+                           'T - TURMAS DO INFANTIL']
     category_by_school = None
     school_ages = None
 
