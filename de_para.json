@@ -18,7 +18,8 @@
 		"JP - JANTAR PROFESSOR": "Jantar - Professor",
 		"AA - ALMOCO ADULTO": "Refeição",
 		"SR - SEM REFEICAO" : "Sem Refeição",
-		"MES - MERENDA ESPEC SECA": "Merenda Especial Seca"
+		"MES - MERENDA ESPEC SECA": "Merenda Especial Seca",
+		"HE - HORARIO ESTENDIDO":  "Horário estendido"
 	},
 	"idades": {
 		"A - 0 A 1 MES": "0 a 1 mês",
