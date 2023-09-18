@@ -1,4 +1,5 @@
 import collections
+import datetime
 
 
 def sort_cardapio_por_refeicao(refeicoes_desord):
@@ -70,3 +71,15 @@ def translate_date_week(day):
     }
 
     return week_day[day]
+
+
+def datetime_range(start=None, end=None):
+    dates = []
+    if isinstance(start, str):
+        start = datetime.datetime.strptime(start, '%Y%m%d').date()
+    if isinstance(end, str):
+        end = datetime.datetime.strptime(end, '%Y%m%d').date()
+    span = end - start
+    for i in range(span.days + 1):
+        dates.append((start + datetime.timedelta(days=i)).strftime('%Y%m%d'))
+    return dates
