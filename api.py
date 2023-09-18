@@ -600,9 +600,9 @@ def find_menu_json(request_data, dia, is_pdf=False):
             'status': False,
             'cardapio_original': False,
         }
-        cardapio = db.cardapios.find_one(query, fields)
-        if cardapio:
-            _cardapios.append(cardapio)
+        cardapios = db.cardapios.find(query, fields)
+        for c in cardapios:
+            _cardapios.append(c)
 
     cardapio_ordenado = []
     definicao_ordenacao = ['A - 0 A 1 MES', 'B - 1 A 3 MESES', 'C - 4 A 5 MESES', 'D - 0 A 5 MESES', 'D - 6 A 7 MESES',
