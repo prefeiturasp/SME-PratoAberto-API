@@ -18,7 +18,8 @@ import utils
 from utils import (sort_cardapio_por_refeicao,
                    extract_digits,
                    extract_chars,
-                   remove_refeicao_duplicada_sme_conv)
+                   remove_refeicao_duplicada_sme_conv,
+                   datetime_range)
 
 load_dotenv()
 
@@ -572,48 +573,37 @@ def find_menu_json(request_data, dia, is_pdf=False):
     query = {
         'status': 'PUBLICADO'
     }
-    if start == end:
-        edital_corrente = db.escolas_editais.find_one(
-            {'escola': int(school_id), '$or': [{'data_fim': {'$gte': str(dia)}}, {'data_fim': None}]})
-    else:
-        edital_corrente = db.escolas_editais.find_one(
-            {'escola': int(school_id), 'data_inicio': {'$lte': str(start)},
-             '$or': [{'data_fim': {'$gte': str(end)}}, {'data_fim': None}]}
-        )
 
-    edital_corrente_nome = edital_corrente['edital'] if edital_corrente else 'EDITAL 78/2016'
-    tipo_gestao_corrente = edital_corrente['tipo_atendimento'] if edital_corrente else 'TERCEIRIZADA'
-
-    query['agrupamento'] = edital_corrente_nome if not unidade_especial else 'UE'
-    if request_data.args.get('tipo_atendimento'):
-        query['tipo_atendimento'] = tipo_gestao_corrente if not unidade_especial else 'UE'
     if request_data.args.get('tipo_unidade'):
         query['tipo_unidade'] = request_data.args['tipo_unidade'] if not unidade_especial else unidade_especial['nome']
     if request_data.args.get('idade'):
         query['idade'] = idades_reversed.get(request_data.args['idade'])
+
     if dia:
-        query['data'] = dia
+        dias = [dia]
     else:
-        dia = {}
-        if request_data.args.get('data_inicial'):
-            dia.update({'$gte': request_data.args['data_inicial']})
-        if request_data.args.get('data_final'):
-            dia.update({'$lte': request_data.args['data_final']})
-        if dia:
-            query['data'] = dia
-    limit = int(request_data.args.get('limit', 0))
-    page = int(request_data.args.get('page', 0))
-    fields = {
-        '_id': False,
-        'status': False,
-        'cardapio_original': False,
-    }
-    cardapios = db.cardapios.find(query, fields).sort([('data', -1)])
-    if page and limit:
-        cardapios = cardapios.skip(limit * (page - 1)).limit(limit)
-    elif limit:
-        cardapios = cardapios.limit(limit)
+        dias = datetime_range(request_data.args.get('data_inicial'), request_data.args.get('data_final'))
+
     _cardapios = []
+    for dia_ in dias:
+        edital_corrente = db.escolas_editais.find_one(
+            {'escola': int(school_id), '$or': [{'data_fim': {'$gte': str(dia_)}}, {'data_fim': None}]})
+        tipo_gestao_corrente = edital_corrente['tipo_atendimento'] if edital_corrente else 'TERCEIRIZADA'
+        if request_data.args.get('tipo_atendimento'):
+            query['tipo_atendimento'] = tipo_gestao_corrente if not unidade_especial else 'UE'
+        edital_corrente_nome = edital_corrente['edital'] if edital_corrente else 'EDITAL 78/2016'
+        query['agrupamento'] = edital_corrente_nome if not unidade_especial else 'UE'
+        query['data'] = dia_
+
+        fields = {
+            '_id': False,
+            'status': False,
+            'cardapio_original': False,
+        }
+        cardapio = db.cardapios.find_one(query, fields)
+        if cardapio:
+            _cardapios.append(cardapio)
+
     cardapio_ordenado = []
     definicao_ordenacao = ['A - 0 A 1 MES', 'B - 1 A 3 MESES', 'C - 4 A 5 MESES', 'D - 0 A 5 MESES', 'D - 6 A 7 MESES',
                            'D - 6 MESES', 'D - 7 MESES', 'E - 7 A 11 MESES', 'E - 8 A 11 MESES', 'X - 1A -1A E 11MES',
@@ -627,9 +617,6 @@ def find_menu_json(request_data, dia, is_pdf=False):
 
     if request_data.args.get('nome'):
         category_by_school, school_ages = _get_school_by_name(request_data.args.get('nome'))
-
-    for c in cardapios:
-        _cardapios.append(c)
 
     for i in definicao_ordenacao:
         for c in _cardapios:
