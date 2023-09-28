@@ -2,7 +2,7 @@ Flask==0.12.2
 Flask-Cors==3.0.10
 gunicorn==19.7.1
 pymongo==3.4.0
-Werkzeug==0.16.1
+Werkzeug==2.2.3
 pytest-flask
 pytest-cov
 html5lib==1.0.1
