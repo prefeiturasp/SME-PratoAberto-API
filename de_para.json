@@ -9,7 +9,7 @@
 		"L5 - LANCHE 5 HORAS": "Lanche - Permanência de 5 ou 6 horas",
 		"L5 - LANCHE 5 OU 6 HORAS": "Lanche - Permanência de 5 ou 6 horas",
 		"LPI - LANCHE PERIODO INTEG": "Lanche Período Integral",
-                "R1 - REFEICAO 1": "Refeição",
+		"R1 - REFEICAO 1": "Refeição",
 		"MS - MERENDA SECA": "Merenda Seca",
 		"MI - MERENDA INICIAL": "Merenda Inicial",
 		"RP - REFEIÇÃO PROFESSOR": "Refeição - Professor",
@@ -19,7 +19,7 @@
 		"AA - ALMOCO ADULTO": "Refeição",
 		"SR - SEM REFEICAO" : "Sem Refeição",
 		"MES - MERENDA ESPEC SECA": "Merenda Especial Seca",
-		"HE - HORARIO ESTENDIDO":  "Horário estendido",
+		"HE - HORARIO ESTENDIDO": "Horário estendido",
 		"LP - LANCHE PASSEIO": "Lanche passeio"
 	},
 	"idades": {
