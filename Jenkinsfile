@@ -6,9 +6,11 @@ pipeline {
       namespace = "${env.branchname == 'development' ? 'pratoaberto-dev' : env.branchname == 'homolog' ? 'pratoaberto-hom' : env.branchname == 'homolog-r2' ? 'pratoaberto-hom2' : 'sme-pratoaberto' }"
     }
   
-    agent {
-      node { label 'python-36-pratoaberto' }
-    }
+    agent { kubernetes { 
+              label 'python36'
+              defaultContainer 'builder'
+            }
+          }
 
     options {
       buildDiscarder(logRotator(numToKeepStr: '5', artifactNumToKeepStr: '5'))
@@ -34,8 +36,14 @@ pipeline {
         }        
 
         stage('Build') {
-          when { anyOf { branch 'master'; branch 'main'; branch "story/*"; branch 'development'; branch 'release'; branch 'homolog';  } } 
+          when { anyOf { branch 'master'; branch 'main'; branch "story/*"; branch 'development'; branch 'release'; branch 'homolog';  } }
+          agent { kubernetes { 
+              label 'builder'
+              defaultContainer 'builder'
+            }
+          } 
           steps {
+          checkout scm
             script {
               imagename1 = "registry.sme.prefeitura.sp.gov.br/${env.branchname}/pratoaberto-api"
               dockerImage1 = docker.build(imagename1, "-f Dockerfile .")
@@ -48,7 +56,12 @@ pipeline {
         }
 	    
         stage('Deploy'){
-            when { anyOf {  branch 'master'; branch 'main'; branch 'development'; branch 'release'; branch 'homolog';  } }        
+            when { anyOf {  branch 'master'; branch 'main'; branch 'development'; branch 'release'; branch 'homolog';  } }
+            agent { kubernetes { 
+              label 'builder'
+              defaultContainer 'builder'
+            }
+          }        
             steps {
                 script{
                     if ( env.branchname == 'main' ||  env.branchname == 'master' ) {
