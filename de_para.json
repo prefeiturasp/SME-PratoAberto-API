@@ -19,7 +19,8 @@
 		"AA - ALMOCO ADULTO": "Refeição",
 		"SR - SEM REFEICAO" : "Sem Refeição",
 		"MES - MERENDA ESPEC SECA": "Merenda Especial Seca",
-		"HE - HORARIO ESTENDIDO":  "Horário estendido"
+		"HE - HORARIO ESTENDIDO":  "Horário estendido",
+		"LP - LANCHE PASSEIO": "Lanche passeio"
 	},
 	"idades": {
 		"A - 0 A 1 MES": "0 a 1 mês",
