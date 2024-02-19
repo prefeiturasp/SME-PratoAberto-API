@@ -587,7 +587,24 @@ def find_menu_json(request_data, dia, is_pdf=False):
     _cardapios = []
     for dia_ in dias:
         edital_corrente = db.escolas_editais.find_one(
-            {'escola': int(school_id), '$or': [{'data_fim': {'$gte': str(dia_)}}, {'data_fim': None}]})
+            {
+                'escola': int(school_id),
+                '$or': [
+                    {
+                        '$and': [
+                            {'data_inicio': {'$lte': str(dia_)}},
+                            {'data_fim': None}
+                        ]
+                    },
+                    {
+                        '$and': [
+                            {'data_inicio': {'$lte': str(dia_)}},
+                            {'data_fim': {'$gte': str(dia_)}}
+                        ]
+                    }
+                ]
+            }
+        )
         tipo_gestao_corrente = edital_corrente['tipo_atendimento'] if edital_corrente else 'TERCEIRIZADA'
         if request_data.args.get('tipo_atendimento'):
             query['tipo_atendimento'] = tipo_gestao_corrente if not unidade_especial else 'UE'
