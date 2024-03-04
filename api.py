@@ -1003,7 +1003,8 @@ class MigrarHistoricoEditais(Resource):
                 {'nome': '3', 'data_criacao': datetime.now()},
                 {'nome': '4', 'data_criacao': datetime.now()},
                 {'nome': 'EDITAL 78/2016', 'data_criacao': datetime.now()},
-                {'nome': 'Novo Edital', 'data_criacao': datetime.now()}])
+                {'nome': 'Novo Edital', 'data_criacao': datetime.now()},
+                {'nome': 'Edital 2024', 'data_criacao': datetime.now()}])
             response['editais'] = 'editais criados com sucesso'
         else:
             response['editais'] = 'collection editais já criada'
