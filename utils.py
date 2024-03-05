@@ -14,7 +14,9 @@ def sort_cardapio_por_refeicao(refeicoes_desord):
     ordenado = collections.OrderedDict()
     for ordem_refeicao in ordens_refeicao:
         for _ in refeicoes_desord:
-            if not (ordem_refeicao in ordenado) and ordem_refeicao in refeicoes_desord:
+            if (not (ordem_refeicao in ordenado)
+                    and ordem_refeicao in refeicoes_desord
+                    and refeicoes_desord[ordem_refeicao]):
                 ordenado[ordem_refeicao] = refeicoes_desord[ordem_refeicao]
     return ordenado
 
