@@ -10,7 +10,9 @@ def sort_cardapio_por_refeicao(refeicoes_desord):
                        'Merenda Seca', 'Merenda Especial Seca',
                        'Merenda Inicial', 'Refeição - Professor', 'Pro Jovem (filhos)', 'Almoço - Professor',
                        'Jantar - Professor',
-                       'Refeição', 'Refeição 2', 'Refeição CEMEI', 'Lanche CEMEI','Sem Refeição', 'Horário estendido', 'Lanche passeio']
+                       'Refeição', 'Refeição 2', 'Refeição CEMEI', 'Lanche CEMEI', 'Sem Refeição',
+                       'Horário estendido', 'Lanche passeio', 'Lanche 4h - Escola Aberta', 'Lanche 5h - Escola Aberta',
+                       'Refeição - Escola Aberta']
     ordenado = collections.OrderedDict()
     for ordem_refeicao in ordens_refeicao:
         for _ in refeicoes_desord:
