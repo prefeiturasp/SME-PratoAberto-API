@@ -23,7 +23,11 @@
 		"HE - HORARIO ESTENDIDO": "Horário estendido",
 		"LP - LANCHE PASSEIO": "Lanche passeio",
 		"L - LANCHE CEMEI": "Lanche CEMEI",
-		"R - REFEICAO CEMEI":  "Refeição CEMEI"
+		"R - REFEICAO CEMEI": "Refeição CEMEI",
+		"L4 - ESCOLA ABERTA": "Lanche 4h - Escola Aberta",
+		"L5 - ESCOLA ABERTA": "Lanche 5h - Escola Aberta",
+		"R - ESCOLA ABERTA": "Refeição - Escola Aberta",
+		"R - REFEICAO": "Refeição"
 	},
 	"idades": {
 		"A - 0 A 1 MES": "0 a 1 mês",
