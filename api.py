@@ -610,6 +610,10 @@ def find_menu_json(request_data, dia, is_pdf=False):
             query['tipo_atendimento'] = tipo_gestao_corrente if not unidade_especial else 'UE'
         edital_corrente_nome = edital_corrente['edital'] if edital_corrente else 'EDITAL 78/2016'
         query['agrupamento'] = edital_corrente_nome if not unidade_especial else 'UE'
+        if request_data.args.get('tipo_unidade') == "PROJETO_CECI":
+            query['tipo_unidade'] = request_data.args.get('tipo_unidade')
+            query['tipo_atendimento'] = request_data.args.get('tipo_atendimento')
+            query['agrupamento'] = request_data.args.get('agrupamento')
         query['data'] = dia_
 
         fields = {
