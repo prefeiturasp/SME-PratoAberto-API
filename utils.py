@@ -2,19 +2,25 @@ import collections
 import datetime
 
 
+ORDEM_REFEICAO = [
+    'Desjejum', 'Colação', 'Almoço', 'Lanche', 'Refeição da Tarde',
+    'Lanche - Permanência de 5 ou 6 horas',
+    'Refeição',
+    'Lanche - Permanência de 4 ou 8 horas',
+    'Lanche Período Integral',
+    'Merenda Seca', 'Merenda Especial Seca',
+    'Merenda Inicial', 'Refeição - Professor', 'Pro Jovem (filhos)', 'Almoço - Professor',
+    'Jantar - Professor',
+    'Refeição 2', 'Refeição CEMEI', 'Lanche CEMEI', 'Sem Refeição',
+    'Horário estendido', 'Lanche passeio',
+    'Lanche 5h - Escola Aberta', 'Refeição - Escola Aberta',
+    'Lanche 4h - Escola Aberta',
+]
+
+
 def sort_cardapio_por_refeicao(refeicoes_desord):
-    ordens_refeicao = ['Desjejum', 'Colação', 'Almoço', 'Lanche', 'Refeição da Tarde',
-                       'Lanche - Permanência de 4 ou 8 horas',
-                       'Lanche - Permanência de 5 ou 6 horas', 'Lanche - Permanência de 5 ou 6 horas',
-                       'Lanche Período Integral',
-                       'Merenda Seca', 'Merenda Especial Seca',
-                       'Merenda Inicial', 'Refeição - Professor', 'Pro Jovem (filhos)', 'Almoço - Professor',
-                       'Jantar - Professor',
-                       'Refeição', 'Refeição 2', 'Refeição CEMEI', 'Lanche CEMEI', 'Sem Refeição',
-                       'Horário estendido', 'Lanche passeio', 'Lanche 4h - Escola Aberta', 'Lanche 5h - Escola Aberta',
-                       'Refeição - Escola Aberta']
     ordenado = collections.OrderedDict()
-    for ordem_refeicao in ordens_refeicao:
+    for ordem_refeicao in ORDEM_REFEICAO:
         for _ in refeicoes_desord:
             if (not (ordem_refeicao in ordenado)
                     and ordem_refeicao in refeicoes_desord
