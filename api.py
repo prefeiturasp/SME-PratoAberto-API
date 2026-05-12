@@ -19,7 +19,8 @@ from utils import (sort_cardapio_por_refeicao,
                    extract_digits,
                    extract_chars,
                    remove_refeicao_duplicada_sme_conv,
-                   datetime_range, limpar_cardapios)
+                   datetime_range, limpar_cardapios,
+                   ORDEM_REFEICAO)
 
 load_dotenv()
 
@@ -99,7 +100,10 @@ class DetalheEscola(Resource):
                 if 'idades' in escola:
                     escola['idades'] = [idades.get(x, x) for x in escola['idades']]
                 if 'refeicoes' in escola:
-                    escola['refeicoes'] = [refeicoes.get(x, x) for x in escola['refeicoes']]
+                    escola['refeicoes'] = sorted(
+                        [refeicoes.get(x, x) for x in escola['refeicoes']],
+                        key=lambda r: ORDEM_REFEICAO.index(r) if r in ORDEM_REFEICAO else len(ORDEM_REFEICAO)
+                    )
             response = app.response_class(
                 response=json_util.dumps(escola),
                 status=200,
@@ -269,14 +273,31 @@ def _reorganizes_date(menu_dict):
     return date_dict
 
 
-def _reorganizes_category(menu_dict):
+def _reorganizes_category(menu_dict, menu_type_by_school=None):
     category_dict = {}
     for age, menu in menu_dict.items():
+        all_categories = set()
         for day in menu:
-            categories = list(day['cardapio'].keys())
+            all_categories.update(day['cardapio'].keys())
+        categories = list(all_categories)
+        if menu_type_by_school:
+            category_dict[age] = _order_categories_by_school(categories,
+                                                             menu_type_by_school)
+        else:
             category_dict[age] = _change_order_categories_list(categories)
 
     return category_dict
+
+
+def _order_categories_by_school(categories, menu_type_by_school):
+    ordered_categories = []
+    for cat in menu_type_by_school:
+        if cat in categories:
+            ordered_categories.append(cat)
+    for cat in categories:
+        if cat not in ordered_categories:
+            ordered_categories.append(cat)
+    return ordered_categories
 
 
 def _change_order_categories_list(categories):
@@ -357,17 +378,28 @@ class ReportPdf(Resource):
         response = {}
 
         menu_type_by_school, _, _ = _get_school_by_name(request.args.get('nome'))
-
-        formated_data = _reorganizes_data_menu(response_menu)
-        date_organizes = _reorganizes_date(formated_data)
-        catergory_ordered = _reorganizes_category(formated_data)
-
-        menu_organizes = _reorganizes_menu_week(formated_data)
-
-        filtered_category_ordered = filter_by_menu_school(catergory_ordered, menu_type_by_school)
+        school_id = _get_school_id(request.args.get('nome'))
 
         inicio = datetime.strptime(request.args.get('data_inicial'), '%Y%m%d')
         fim = datetime.strptime(request.args.get('data_final'), '%Y%m%d')
+
+        refeicoes_vigencias = _get_vigencias_ativas_no_periodo(
+            school_id,
+            request.args.get('data_inicial'),
+            request.args.get('data_final')
+        )
+
+        menu_types_efetivos = menu_type_by_school + [
+            r for r in refeicoes_vigencias if r not in menu_type_by_school
+        ]
+
+        formated_data = _reorganizes_data_menu(response_menu)
+        date_organizes = _reorganizes_date(formated_data)
+        catergory_ordered = _reorganizes_category(formated_data, menu_types_efetivos)
+
+        menu_organizes = _reorganizes_menu_week(formated_data)
+
+        filtered_category_ordered = filter_by_menu_school(catergory_ordered, menu_types_efetivos)
 
         current_date = self._get_current_date(inicio, fim)
         response['school_name'] = request.args.get('nome')
@@ -610,6 +642,10 @@ def find_menu_json(request_data, dia, is_pdf=False):
             query['tipo_atendimento'] = tipo_gestao_corrente if not unidade_especial else 'UE'
         edital_corrente_nome = edital_corrente['edital'] if edital_corrente else 'EDITAL 78/2016'
         query['agrupamento'] = edital_corrente_nome if not unidade_especial else 'UE'
+        if request_data.args.get('tipo_unidade') == "PROJETO_CECI":
+            query['tipo_unidade'] = request_data.args.get('tipo_unidade')
+            query['tipo_atendimento'] = request_data.args.get('tipo_atendimento')
+            query['agrupamento'] = request_data.args.get('agrupamento')
         query['data'] = dia_
 
         fields = {
@@ -662,14 +698,15 @@ def find_menu_json(request_data, dia, is_pdf=False):
                 if refeicoes[category]:
                     category_by_school_pos_vigencias.append(refeicoes[category])
 
-            diff = list(set(category_by_school) ^ set(category_by_school_pos_vigencias))
-
             c['idade'] = idades[c['idade']]
             c['cardapio'] = {refeicoes[k]: v for k, v in c['cardapio'].items()}
             if category_by_school_pos_vigencias:
                 c['cardapio'] = {k: v for k, v in c['cardapio'].items() if k in category_by_school_pos_vigencias}
 
-            if diff and is_pdf:
+            if is_pdf:
+                missing = set(category_by_school_pos_vigencias) - set(c['cardapio'].keys())
+                removed = set(category_by_school) - set(category_by_school_pos_vigencias)
+                diff = list(missing | removed)
                 for refeicao_diff in diff:
                     c['cardapio'][refeicao_diff] = ['-']
 
@@ -698,7 +735,7 @@ def _get_vigencias_by_school_id(school_id, data_str):
         data_fim = vigencia.get("data_fim")
 
         data_inicio = datetime.strptime(data_inicio, "%Y%m%d") if data_inicio else None
-        data_fim = datetime.strptime(data_fim, "%Y%m%d") if data_fim else None
+        data_fim = datetime.strptime(data_fim, "%Y%m%d") if data_fim is not None else None
 
         if (data_inicio is None or data_ref >= data_inicio) and (data_fim is None or data_ref <= data_fim):
             resultado["vigente"].extend(vigencia.get("refeicoes", []))
@@ -706,6 +743,32 @@ def _get_vigencias_by_school_id(school_id, data_str):
             resultado["nao_vigente"].extend(vigencia.get("refeicoes", []))
 
     return resultado["vigente"], resultado["nao_vigente"]
+
+
+def _get_vigencias_ativas_no_periodo(school_id, data_inicial, data_final):
+    data_inicio_ref = datetime.strptime(data_inicial, "%Y%m%d")
+    data_fim_ref = datetime.strptime(data_final, "%Y%m%d")
+
+    vigencias = db.vigencias_tipo_alimentacao.find({"escola_id": str(school_id)})
+    refeicoes_ativas = set()
+
+    for vigencia in vigencias:
+        v_data_inicio = vigencia.get("data_inicio")
+        v_data_fim = vigencia.get("data_fim")
+
+        v_data_inicio = datetime.strptime(v_data_inicio, "%Y%m%d") if v_data_inicio else None
+        v_data_fim = datetime.strptime(v_data_fim, "%Y%m%d") if v_data_fim is not None else None
+
+        if v_data_inicio is None:
+            v_data_inicio = data_inicio_ref
+        if v_data_fim is None:
+            v_data_fim = data_fim_ref
+
+        if (v_data_fim >= data_inicio_ref) and (v_data_inicio <= data_fim_ref):
+            for r in vigencia.get("refeicoes", []):
+                refeicoes_ativas.add(refeicoes.get(r, r))
+
+    return list(refeicoes_ativas)
 
 
 @api.route('/editor/cardapios')
