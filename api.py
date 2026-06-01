@@ -55,7 +55,7 @@ with open('de_para.json', 'r') as f:
 @app.route('/debug-sentry')
 def trigger_error():
     division_by_zero = 1 / 0
-    
+
 
 @api.route('/escolas')
 @api.response(200, 'lista de escolas')
@@ -321,11 +321,16 @@ def _reorganizes_menu_week(menu_dict):
 
 
 def _get_school_by_name(school_name):
-    new_list_category = []
     school = db.escolas.find({"nome": school_name})
+
+    new_list_category = []
+    added_categories = set()
+
     for category in school[0]['refeicoes']:
-        if refeicoes[category]:
-            new_list_category.append(refeicoes[category])
+        descricao = refeicoes.get(category)
+        if descricao and descricao not in added_categories:
+            added_categories.add(descricao)
+            new_list_category.append(descricao)
 
     return new_list_category, school[0]['idades'], school[0]['refeicoes']
 
@@ -396,7 +401,6 @@ class ReportPdf(Resource):
         formated_data = _reorganizes_data_menu(response_menu)
         date_organizes = _reorganizes_date(formated_data)
         catergory_ordered = _reorganizes_category(formated_data, menu_types_efetivos)
-
         menu_organizes = _reorganizes_menu_week(formated_data)
 
         filtered_category_ordered = filter_by_menu_school(catergory_ordered, menu_types_efetivos)
