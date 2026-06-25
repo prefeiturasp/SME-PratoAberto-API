@@ -422,7 +422,7 @@ class ReportPdf(Resource):
         pdf = _create_pdf(html)
         pdf_name = pdf.split('/')[-1]
 
-        return send_file(pdf, mimetype=pdf_name)
+        return send_file(pdf, mimetype='application/pdf')
 
 
 @app.template_filter('fmt_day_month')
