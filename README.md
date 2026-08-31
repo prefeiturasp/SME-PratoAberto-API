@@ -1,8 +1,55 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/a96e3bfb2024cd6464f7/maintainability)](https://codeclimate.com/github/prefeiturasp/SME-PratoAberto-API/maintainability) [![Build Status](https://travis-ci.org/prefeiturasp/SME-PratoAberto-API.svg?branch=master)](https://travis-ci.org/prefeiturasp/SME-PratoAberto-API)
 
+# Estratégia de Transformação Digital e Governo Aberto na SME
 
+Como um governo pode atuar para garantir o bem comum de todos? Na SME, acreditamos que um dos meios para isso seja garantir transparência e prestação de contas e constante relação entre governo e sociedade para o desenvolvimento e implementação de políticas públicas. 
 
-## Instalação
+A Portaria SME nº 8.008, de 12 de novembro de 2018 oficializou a estratégia da Secretaria Municipal de Educação de SP para que nossas ações sejam pautadas nos princípios de Governo Aberto e para usarmos os valores e benefícios do mundo digital para melhorarmos nossos processos e serviços para os cidadãos. 
+Com isso, pretendemos: 
+- aumentar os níveis de transparência ativa e de abertura de dados, garantindo a proteção de dados pessoais; 
+- instituir metodologias ágeis e colaborativas como parte do processo de desenvolvimento e de evolução de sistemas administrativos e de serviços digitais; 
+- fortalecer o controle das políticas educacionais e da aplicação de recursos por parte da gestão e da sociedade; 
+- promover espaços e metodologias de colaboração entre governo, academia, sociedade civil e setor privado. 
+
+O [Ateliê do Software](http://forum.govit.prefeitura.sp.gov.br/uploads/default/original/1X/c88a4715eb3f9fc3ceb882c1f6afe9e308805a17.pdf) é uma das ferramentas para operacionalização. Baseado em um modelo de contratação inspirado pelos movimentos ágil e de Software Craftsmanship, trabalhamos com equipes multidisciplinares para o desenvolvimento de produtos que beneficiam toda a comunidade escolar (técnicos da SME e DREs, gestores, professores, alunos e famílias) e concretizam os objetivos da Estratégia de Transformação Digital e Governo Aberto “Pátio Digital”.
+
+## Conteúdo
+
+1. [Sobre o produto](#sobre-o-prato-aberto)
+2. [Comunicação](#comunicação)
+3. [Como contribuir](#como-contribuir)
+4. [Repositórios](#Repositórios)
+5. [Instalação e Configuração](#Instalação-e-Configuração)
+
+# Sobre o produto
+
+Projetada para funcionar em computadores e dispositivos móveis como tablets e celulares. A ferramenta permite a consulta dos cardápios por dia e por escola, com visualização no mapa. É a primeira vez que os cardápios são divulgados por unidade escolar. Além de facilitar a consulta dos cardápios,a plataforma permite a avaliação da qualidade das refeições e prevê interação com usuários via Facebook e Telegram, por meio de um assistente virtual, o Robô Edu. A API serve dados sobre as escolas e as refeições das escolas da rede pública da cidade de São Paulo.
+
+## Roadmap 
+
+- Melhorar a qualidade de código
+- Iniciar a escrita de testes unitários
+- Configurar Docker
+- Melhorar documentação de maneira enxuta
+- CI com jenkins
+
+# Comunicação
+
+| Canal de comunicação | Objetivos |
+|----------------------|-----------|
+| [Issues do Github](https://github.com/prefeiturasp/SME-PratoAberto-API/issues) | - Sugestão de novas funcionalidades<br> - Reportar bugs<br> - Discussões técnicas |
+
+# Como contribuir
+
+Contribuições são **super bem vindas**! Se você tem vontade de construir o Prato Aberto conosco, veja o nosso [guia de contribuição](./CONTRIBUTING.md) onde explicamos detalhadamente como trabalhamos e de que formas você pode nos ajudar a alcançar nossos objetivos. Lembrando que todos devem seguir  nosso [código de conduta](./CODEOFCONDUCT.md).
+
+# Repositórios
+
+1. [Robô Edu](https://github.com/prefeiturasp/SME-PratoAberto-Edu)
+2. [API](https://github.com/prefeiturasp/SME-PratoAberto-API)
+3. [Editor](https://github.com/prefeiturasp/SME-PratoAberto-Editor)
+
+# Instalação e Configuração
 
 Instale os requisitos através do `requirements.txt` e configure uma variável de ambiente chamada API_MONGO_URI com o apontamento para a base.
 
@@ -28,69 +75,6 @@ Instale MongoDB versão mínima 3.6:
 mongod --fork --logpath <arquivo_para_logs (exemplo:/var/log/mongod.log)>
 mongorestore -d pratoaberto -c cardapios ./cardapios.bson 
 mongorestore -d pratoaberto -c escolas ./escolas.bson 
-```
-
-
-# Pátio Digital
-
-_“Recurso público retorna ao público”._
-
-Nós somos o **pátio digital**, uma iniciativa da Secretaria Municipal de Educação de São Paulo que, por meio do fortalecimento da transparência, da participação social e do desenvolvimento de novas tecnologias, aproxima diferentes grupos da sociedade civil por um objetivo maior: a melhoria da educação na cidade de São Paulo.
-
-# Prato Aberto
-
-"Prato Aberto – Comida Boa Não Tem Segredo".
-
-# API do Prato Aberto
-
-A API serve dados sobre as escolas e as refeições das escolas da rede pública da cidade de São Paulo.
-
-## Conteúdo
-
-1. [Sobre o prato aberto](#sobre-o-prato-aberto)
-2. [Comunicação](#comunicação)
-3. [Roadmap de tecnologia](#roadmap-de-tecnologia)
-4. [Como contribuir](#como-contribuir)
-5. [Instalação](#instalação)
-
-## Sobre o prato aberto
-
-Projetada para funcionar em computadores e dispositivos móveis como tablets e celulares. A ferramenta permite a consulta dos cardápios por dia e por escola, com visualização no mapa. É a primeira vez que os cardápios
-são divulgados por unidade escolar. Além de facilitar a consulta dos cardápios,a plataforma permite a avaliação da qualidade das refeições e prevê interação com usuários via Facebook e Telegram, por meio de um assistente virtual, o Robô Edu.
-
-### Nossos outros repositórios
-
-1. [Robô Edu](https://github.com/prefeiturasp/SME-PratoAberto-Edu)
-2. [API](https://github.com/prefeiturasp/SME-PratoAberto-API)
-3. [Editor](https://github.com/prefeiturasp/SME-PratoAberto-Editor)
-
-## Comunicação
-
-| Canal de comunicação | Objetivos |
-|----------------------|-----------|
-| [Issues do Github](https://github.com/prefeiturasp/SME-PratoAberto-Frontend/issues) | - Sugestão de novas funcionalidades<br> - Reportar bugs<br> - Discussões técnicas |
-| [Telegram](https://t.me/patiodigital ) | - Comunicar novidades sobre os projetos<br> - Movimentar a comunidade<br>  - Falar tópicos que **não** demandem discussões profundas |
-
-Qualquer outro grupo de discussão não é reconhecido oficialmente.
-
-## Roadmap de tecnologia
-
-### Passos iniciais
-- Melhorar a qualidade de código
-- Iniciar a escrita de testes unitários
-- Configurar Docker
-- Melhorar documentação de maneira enxuta
-- CI com jenkins
-
-## Como contribuir
-
-Contribuições são **super bem vindas**! Se você tem vontade de construir o
-prato aberto conosco, veja o nosso [guia de contribuição](./CONTRIBUTING.md)
-onde explicamos detalhadamente como trabalhamos e de que formas você pode nos
-ajudar a alcançar nossos objetivos. Lembrando que todos devem seguir
-nosso [código de conduta](./CODEOFCONDUCT.md).
-
-
 
 # Endpoints
 
